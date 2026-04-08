@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -43,18 +44,15 @@
         .glass-card h2 { font-family: 'Poppins', sans-serif; font-size: 1.8rem; margin-bottom: 1.5rem; }
         .form-group { margin-bottom: 1.2rem; }
         .form-group label { display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem; }
-        .form-input, .form-select, .form-textarea { width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border); border-radius: 0.8rem; padding: 0.8rem 1rem; color: white; }
+        .form-input, .form-select, .form-textarea { width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border); border-radius: 0.8rem; padding: 0.8rem 1rem; color: white; outline: none; transition: border 0.3s; }
+        .form-input:focus { border-color: var(--accent); }
         .btn { padding: 0.8rem 1.5rem; border-radius: 0.8rem; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 0.6rem; transition: all 0.3s; }
         .btn-primary { background: var(--accent); color: var(--bg-color); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--accent-glow); }
         .btn-secondary { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--glass-border); }
-        .ticket-item { background: rgba(0, 0, 0, 0.2); border-radius: 1rem; padding: 1.2rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent); cursor: pointer; }
-        .status-badge { font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 0.5rem; text-transform: uppercase; font-weight: 700; }
-        .status-abierto { background: var(--success); color: #000; }
-        .status-proceso { background: var(--warning); color: #000; }
-        .status-cerrado { background: #555; color: #fff; }
-        .notifications-container { position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 0.8rem; z-index: 1000; }
-        .toast { background: rgba(0, 0, 0, 0.9); border: 1px solid var(--glass-border); padding: 1rem 1.5rem; border-radius: 1rem; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .ticket-item { background: rgba(0, 0, 0, 0.2); border-radius: 1rem; padding: 1.2rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent); cursor: pointer; transition: transform 0.2s; }
+        .ticket-item:hover { transform: translateX(5px); background: rgba(255,255,255,0.05); }
+        .status-badge { font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 0.5rem; text-transform: uppercase; font-weight: 700; background: var(--accent); color: #000; }
         .login-screen { display: flex; justify-content: center; align-items: center; min-height: 70vh; }
         .login-card { max-width: 450px; width: 100%; text-align: center; }
         .content-fade { animation: fadeIn 0.4s ease-out; }
@@ -75,20 +73,20 @@
                 <div class="logo" style="font-size: 2rem;">Iniciando Sistema...</div>
             </div>
         </main>
-        <div id="notifications" class="notifications-container"></div>
     </div>
 
     <script>
         // CONFIGURACIÓN DE SUPABASE
         const SUPABASE_URL = 'https://xpdvvdnwzqyjvnxpivvc.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_18PzzKKfqb2O-ksjQGF_8g_-oZZNow659d57a412803b98453531b467ec80398f62'; // Reemplázala por la tuya si esta expira
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_KEY = 'sb_publishable_18PzzKKfqb2O-ksjQGF_8g_-oZZNow659d57a412803b98453531b467ec80398f62';
+        
+        // Inicializar cliente de Supabase de forma segura
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let state = {
             currentUser: null,
             currentView: 'login',
-            tickets: [],
-            selectedTicketId: null
+            tickets: []
         };
 
         async function init() {
@@ -126,7 +124,11 @@
                         <div class="form-group"><label>Contraseña</label><input type="password" name="password" class="form-input" required></div>
                         <button type="submit" class="btn btn-primary" style="width:100%">Entrar</button>
                     </form>
-                    <p style="margin-top:1rem; font-size:0.8rem">¿No tienes cuenta? <a href="#" onclick="state.currentView='register'; render()" style="color:var(--accent)">Regístrate</a></p>
+                    <p style="margin-top:1.5rem; font-size:0.8rem">¿No tienes cuenta? <a href="#" onclick="state.currentView='register'; render()" style="color:var(--accent)">Regístrate aquí</a></p>
+                    <div style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:0.8rem; margin-top:1.5rem; font-size:0.75rem; color:var(--text-secondary)">
+                        <strong>Acceso de prueba:</strong><br>
+                        Admin: admin@gtim.com / gtim123
+                    </div>
                 </div>
             `;
             return div;
@@ -144,7 +146,7 @@
                         <div class="form-group"><label>Contraseña</label><input type="password" name="password" class="form-input" required></div>
                         <button type="submit" class="btn btn-primary" style="width:100%">Registrarse</button>
                     </form>
-                    <button class="btn btn-secondary" style="width:100%; margin-top:0.5rem" onclick="state.currentView='login'; render()">Volver</button>
+                    <button class="btn btn-secondary" style="width:100%; margin-top:1rem" onclick="state.currentView='login'; render()">Volver al Login</button>
                 </div>
             `;
             return div;
@@ -157,17 +159,17 @@
                 <div class="glass-card">
                     <h2>Nueva Solicitud</h2>
                     <form onsubmit="event.preventDefault(); handleCreateTicket(this);">
-                        <div class="form-group"><label>Proyecto</label><input type="text" name="proyecto" class="form-input" required></div>
+                        <div class="form-group"><label>Proyecto</label><input type="text" name="proyecto" class="form-input" required placeholder="Ej: Redes, Software..."></div>
                         <div class="form-group"><label>Prioridad</label>
                             <select name="prioridad" class="form-select"><option value="Baja">Baja</option><option value="Media">Media</option><option value="Alta">Alta</option></select>
                         </div>
-                        <div class="form-group"><label>Descripción</label><textarea name="descripcion" class="form-textarea" required rows="3"></textarea></div>
-                        <button type="submit" class="btn btn-primary">Enviar Ticket</button>
+                        <div class="form-group"><label>Descripción del Problema</label><textarea name="descripcion" class="form-textarea" required rows="4" placeholder="Describe tu problema aquí..."></textarea></div>
+                        <button type="submit" class="btn btn-primary" style="width:100%">Enviar a Soporte</button>
                     </form>
                 </div>
                 <div class="glass-card">
                     <h2>Mis Solicitudes</h2>
-                    <div id="user-tickets-list">Cargando...</div>
+                    <div id="user-tickets-list" style="max-height: 400px; overflow-y: auto;">Cargando...</div>
                 </div>
             `;
             loadUserTickets();
@@ -178,77 +180,87 @@
             const div = document.createElement('div');
             div.className = 'glass-card content-fade';
             div.innerHTML = `
-                <h2>Panel de Soporte Técnico</h2>
-                <div id="support-tickets-list" style="margin-top:2rem">Cargando tickets...</div>
+                <h2>Panel de Soporte GTIM</h2>
+                <div id="support-tickets-list" style="margin-top:2rem">Cargando tickets de toda la empresa...</div>
             `;
             loadAllTickets();
             return div;
         };
 
-        // --- FUNCIONES DE BASE DE DATOS (SUPABASE) ---
+        // --- LÓGICA DE DATOS CON SUPABASE ---
 
         async function handleLogin(form) {
-            const { data, error } = await supabase.from('usuarios').select('*').eq('email', form.email.value).eq('password', form.password.value).single();
+            const { data, error } = await supabaseClient.from('usuarios').select('*').eq('email', form.email.value).eq('password', form.password.value).single();
             if (data) {
                 state.currentUser = data;
                 state.currentView = data.rol === 'Usuario Soporte Tecnico' ? 'support' : 'home';
                 render();
             } else {
-                alert('Credenciales inválidas');
+                alert('Email o contraseña incorrectos. Revisa tu acceso de prueba.');
             }
         }
 
         async function handleRegister(form) {
-            const { error } = await supabase.from('usuarios').insert([
-                { nombre_completo: form.name.value, email: form.email.value, password: form.password.value }
+            const { error } = await supabaseClient.from('usuarios').insert([
+                { nombre_completo: form.name.value, email: form.email.value, password: form.password.value, rol: 'Usuario Solicitante' }
             ]);
             if (!error) {
-                alert('Registro exitoso. Ya puedes iniciar sesión.');
+                alert('¡Cuenta creada! Ya puedes iniciar sesión.');
                 state.currentView = 'login';
                 render();
+            } else {
+                alert('Error al registrar: ' + error.message);
             }
         }
 
         async function handleCreateTicket(form) {
-            const { error } = await supabase.from('tickets').insert([
+            const { error } = await supabaseClient.from('tickets').insert([
                 { 
                     proyecto: form.proyecto.value, 
                     prioridad: form.prioridad.value, 
                     descripcion: form.descripcion.value,
                     autor_nombre: state.currentUser.nombre_completo,
-                    autor_email: state.currentUser.email
+                    autor_email: state.currentUser.email,
+                    estado: 'Abierto'
                 }
             ]);
             if (!error) {
-                alert('Ticket enviado con éxito');
+                alert('Ticket enviado correctamente. Un técnico lo revisará pronto.');
                 form.reset();
                 loadUserTickets();
             }
         }
 
         async function loadUserTickets() {
-            const { data } = await supabase.from('tickets').select('*').eq('autor_email', state.currentUser.email).order('created_at', { ascending: false });
+            const { data } = await supabaseClient.from('tickets').select('*').eq('autor_email', state.currentUser.email).order('created_at', { ascending: false });
             const list = document.getElementById('user-tickets-list');
-            if (data) {
+            if (data && data.length > 0) {
                 list.innerHTML = data.map(t => `
                     <div class="ticket-item">
-                        <div><strong>${t.proyecto}</strong><br><small>${t.descripcion}</small></div>
-                        <span class="status-badge status-${t.estado.toLowerCase().replace(' ', '')}">${t.estado}</span>
+                        <div><strong>${t.proyecto}</strong><br><small style="color:var(--text-secondary)">${t.descripcion}</small></div>
+                        <span class="status-badge">${t.estado}</span>
                     </div>
                 `).join('');
+            } else {
+                list.innerHTML = '<p style="color:var(--text-secondary); text-align:center">No tienes tickets registrados aún.</p>';
             }
         }
 
         async function loadAllTickets() {
-            const { data } = await supabase.from('tickets').select('*').order('created_at', { ascending: false });
+            const { data } = await supabaseClient.from('tickets').select('*').order('created_at', { ascending: false });
             const list = document.getElementById('support-tickets-list');
-            if (data) {
+            if (data && data.length > 0) {
                 list.innerHTML = data.map(t => `
                     <div class="ticket-item">
-                        <div><strong>${t.autor_nombre} - ${t.proyecto}</strong><br><small>${t.prioridad}</small></div>
-                        <button class="btn btn-secondary" onclick="updateStatus(${t.id})">${t.estado}</button>
+                        <div><strong>${t.autor_nombre}</strong> (${t.proyecto})<br><small>${t.descripcion}</small></div>
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:5px">
+                            <span class="status-badge" style="background:var(--secondary-accent)">${t.prioridad}</span>
+                            <small>${t.estado}</small>
+                        </div>
                     </div>
                 `).join('');
+            } else {
+                list.innerHTML = '<p style="text-align:center">No hay tickets pendientes en el sistema.</p>';
             }
         }
 
