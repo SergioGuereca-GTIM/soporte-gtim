@@ -67,25 +67,38 @@
                 <div id="nav-actions-container"></div>
             </div>
         </nav>
-        <main id="main-content" class="content-fade"></main>
+        <main id="main-content" class="content-fade">
+            <div style="display: flex; justify-content: center; align-items: center; min-height: 50vh; flex-direction: column; gap: 1rem;">
+                <div class="logo" style="font-size: 2rem;">Iniciando Sistema...</div>
+            </div>
+        </main>
     </div>
 
     <script>
+
+// CONFIGURACIÓN DE SUPABASE FINAL
         const SUPABASE_URL = 'https://xpdvvdnwzqyjvnxpivvc.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_18PzzKKfqb20-ksjQGF_8g_-oZZNUll';
+        
+        // Inicializar cliente de Supabase
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let state = {
             currentUser: null,
             currentView: 'login',
-            tickets: [],
-            selectedTicketId: null
+            tickets: []
         };
+
+        async function init() {
+            render();
+            if (window.lucide) window.lucide.createIcons();
+        }
 
         const render = () => {
             const main = document.getElementById('main-content');
             const navActions = document.getElementById('nav-actions-container');
-            main.innerHTML = ''; navActions.innerHTML = '';
+            main.innerHTML = '';
+            navActions.innerHTML = '';
 
             if (state.currentUser) {
                 navActions.innerHTML = `<button class="btn btn-secondary" onclick="logout()">Salir (${state.currentUser.nombre_completo})</button>`;
@@ -96,7 +109,6 @@
                 case 'register': main.appendChild(renderRegister()); break;
                 case 'home': main.appendChild(renderHome()); break;
                 case 'support': main.appendChild(renderSupportList()); break;
-                case 'detail': main.appendChild(renderDetail()); break;
             }
             if (window.lucide) window.lucide.createIcons();
         };
@@ -129,4 +141,132 @@
                 <div class="glass-card login-card">
                     <h2>Crear Cuenta</h2>
                     <form onsubmit="event.preventDefault(); handleRegister(this);">
-                        
+                        <div class="form-group"><label>Nombre Completo</label><input type="text" name="name" class="form-input" required></div>
+                        <div class="form-group"><label>Email</label><input type="email" name="email" class="form-input" required></div>
+                        <div class="form-group"><label>Contraseña</label><input type="password" name="password" class="form-input" required></div>
+                        <button type="submit" class="btn btn-primary" style="width:100%">Registrarse</button>
+                    </form>
+                    <button class="btn btn-secondary" style="width:100%; margin-top:1rem" onclick="state.currentView='login'; render()">Volver al Login</button>
+                </div>
+            `;
+            return div;
+        };
+
+        const renderHome = () => {
+            const div = document.createElement('div');
+            div.className = 'screen-layout content-fade';
+            div.innerHTML = `
+                <div class="glass-card">
+                    <h2>Nueva Solicitud</h2>
+                    <form onsubmit="event.preventDefault(); handleCreateTicket(this);">
+                        <div class="form-group"><label>Proyecto</label><input type="text" name="proyecto" class="form-input" required placeholder="Ej: Redes, Software..."></div>
+                        <div class="form-group"><label>Prioridad</label>
+                            <select name="prioridad" class="form-select"><option value="Baja">Baja</option><option value="Media">Media</option><option value="Alta">Alta</option></select>
+                        </div>
+                        <div class="form-group"><label>Descripción del Problema</label><textarea name="descripcion" class="form-textarea" required rows="4" placeholder="Describe tu problema aquí..."></textarea></div>
+                        <button type="submit" class="btn btn-primary" style="width:100%">Enviar a Soporte</button>
+                    </form>
+                </div>
+                <div class="glass-card">
+                    <h2>Mis Solicitudes</h2>
+                    <div id="user-tickets-list" style="max-height: 400px; overflow-y: auto;">Cargando...</div>
+                </div>
+            `;
+            loadUserTickets();
+            return div;
+        };
+
+        const renderSupportList = () => {
+            const div = document.createElement('div');
+            div.className = 'glass-card content-fade';
+            div.innerHTML = `
+                <h2>Panel de Soporte GTIM</h2>
+                <div id="support-tickets-list" style="margin-top:2rem">Cargando tickets de toda la empresa...</div>
+            `;
+            loadAllTickets();
+            return div;
+        };
+
+        // --- LÓGICA DE DATOS CON SUPABASE ---
+
+        async function handleLogin(form) {
+            const { data, error } = await supabaseClient.from('usuarios').select('*').eq('email', form.email.value).eq('password', form.password.value).single();
+            if (data) {
+                state.currentUser = data;
+                state.currentView = data.rol === 'Usuario Soporte Tecnico' ? 'support' : 'home';
+                render();
+            } else {
+                alert('Email o contraseña incorrectos. Revisa tu acceso de prueba.');
+            }
+        }
+
+        async function handleRegister(form) {
+            const { error } = await supabaseClient.from('usuarios').insert([
+                { nombre_completo: form.name.value, email: form.email.value, password: form.password.value, rol: 'Usuario Solicitante' }
+            ]);
+            if (!error) {
+                alert('¡Cuenta creada! Ya puedes iniciar sesión.');
+                state.currentView = 'login';
+                render();
+            } else {
+                alert('Error al registrar: ' + error.message);
+            }
+        }
+
+        async function handleCreateTicket(form) {
+            const { error } = await supabaseClient.from('tickets').insert([
+                { 
+                    proyecto: form.proyecto.value, 
+                    prioridad: form.prioridad.value, 
+                    descripcion: form.descripcion.value,
+                    autor_nombre: state.currentUser.nombre_completo,
+                    autor_email: state.currentUser.email,
+                    estado: 'Abierto'
+                }
+            ]);
+            if (!error) {
+                alert('Ticket enviado correctamente. Un técnico lo revisará pronto.');
+                form.reset();
+                loadUserTickets();
+            }
+        }
+
+        async function loadUserTickets() {
+            const { data } = await supabaseClient.from('tickets').select('*').eq('autor_email', state.currentUser.email).order('created_at', { ascending: false });
+            const list = document.getElementById('user-tickets-list');
+            if (data && data.length > 0) {
+                list.innerHTML = data.map(t => `
+                    <div class="ticket-item">
+                        <div><strong>${t.proyecto}</strong><br><small style="color:var(--text-secondary)">${t.descripcion}</small></div>
+                        <span class="status-badge">${t.estado}</span>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<p style="color:var(--text-secondary); text-align:center">No tienes tickets registrados aún.</p>';
+            }
+        }
+
+        async function loadAllTickets() {
+            const { data } = await supabaseClient.from('tickets').select('*').order('created_at', { ascending: false });
+            const list = document.getElementById('support-tickets-list');
+            if (data && data.length > 0) {
+                list.innerHTML = data.map(t => `
+                    <div class="ticket-item">
+                        <div><strong>${t.autor_nombre}</strong> (${t.proyecto})<br><small>${t.descripcion}</small></div>
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:5px">
+                            <span class="status-badge" style="background:var(--secondary-accent)">${t.prioridad}</span>
+                            <small>${t.estado}</small>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<p style="text-align:center">No hay tickets pendientes en el sistema.</p>';
+            }
+        }
+
+        window.logout = () => { state.currentUser = null; state.currentView = 'login'; render(); };
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
