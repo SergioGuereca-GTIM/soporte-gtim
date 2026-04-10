@@ -22,6 +22,7 @@
             --baja: #00e676;
             --success: #00e676;
             --warning: #ffb300;
+            --error-glow: rgba(255, 61, 0, 0.3);
         }
 
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -49,8 +50,8 @@
         }
         input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
         
-        /* Efecto cuando falta un campo */
-        input.error, select.error, textarea.error { border-color: var(--critica); background: rgba(255, 61, 0, 0.1); }
+        /* Error sutil y con estilo */
+        .error-field { border-color: var(--critica) !important; box-shadow: 0 0 10px var(--error-glow) !important; }
 
         .main-btn {
             background: var(--accent); color: #000; padding: 15px; border-radius: 12px; border: none;
@@ -98,7 +99,7 @@
             <h3>Finalizar Solicitud</h3>
             <div class="form-group">
                 <label>Respuesta de Soporte</label>
-                <textarea id="resolve-msg" rows="4" placeholder="Describe la solución aplicada..."></textarea>
+                <textarea id="resolve-msg" rows="4" placeholder="Describe la solución aplicada..." oninput="this.classList.remove('error-field')"></textarea>
             </div>
             <div style="display:flex; gap:10px">
                 <button class="main-btn" onclick="app.confirmResolve()" style="background:var(--success)">Cerrar Ticket</button>
@@ -145,16 +146,18 @@
                             <div class="glass card">
                                 <h3><i data-lucide="send"></i> Nueva Solicitud</h3>
                                 <div class="field-row">
-                                    <div class="form-group"><label>Proyecto</label><input type="text" id="f-proy" placeholder="Ej: Redes"></div>
+                                    <div class="form-group"><label>Proyecto</label>
+                                        <input type="text" id="f-proy" placeholder="Ej: Redes" oninput="this.classList.remove('error-field')">
+                                    </div>
                                     <div class="form-group"><label>Área</label>
-                                        <select id="f-area">
+                                        <select id="f-area" onchange="this.classList.remove('error-field')">
                                             <option value="">-- Selecciona --</option><option>QA</option><option>DEV</option><option>F4</option><option>OTROS</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="field-row">
                                     <div class="form-group"><label>Tipo de Solicitud</label>
-                                        <select id="f-tipo">
+                                        <select id="f-tipo" onchange="this.classList.remove('error-field')">
                                             <option value="">-- Selecciona --</option>
                                             <option>Instalación de Imágenes</option><option>Respaldo de Imágenes</option><option>Encendido de equipos</option>
                                             <option>Configuración de impresoras</option><option>Validar conexión a la red</option><option>Carga de Respaldos</option>
@@ -165,16 +168,22 @@
                                         </select>
                                     </div>
                                     <div class="form-group"><label>Prioridad</label>
-                                        <select id="f-prio">
+                                        <select id="f-prio" onchange="this.classList.remove('error-field')">
                                             <option value="">-- Selecciona --</option><option>Baja</option><option>Media</option><option>Alta</option><option>Critica</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="field-row">
-                                    <div class="form-group"><label>Información del Equipo</label><input type="text" id="f-info" placeholder="PC-001 / IP"></div>
-                                    <div class="form-group"><label>Modelo del Equipo</label><input type="text" id="f-mod" placeholder="HP / Dell"></div>
+                                    <div class="form-group"><label>Información del Equipo</label>
+                                        <input type="text" id="f-info" placeholder="PC-001 / IP" oninput="this.classList.remove('error-field')">
+                                    </div>
+                                    <div class="form-group"><label>Modelo del Equipo</label>
+                                        <input type="text" id="f-mod" placeholder="HP / Dell" oninput="this.classList.remove('error-field')">
+                                    </div>
                                 </div>
-                                <div class="form-group"><label>Descripción del Problema</label><textarea id="f-desc" rows="3" placeholder="Describe tu solicitud..."></textarea></div>
+                                <div class="form-group"><label>Descripción del Problema</label>
+                                    <textarea id="f-desc" rows="3" placeholder="Describe tu solicitud..." oninput="this.classList.remove('error-field')"></textarea>
+                                </div>
                                 <button class="main-btn" onclick="app.sendTicket()">Enviar Ticket</button>
                             </div>
                             <div class="glass card">
@@ -213,22 +222,21 @@
             },
 
             sendTicket: async () => {
-                // IDs de los campos a validar
                 const fields = ['f-proy', 'f-area', 'f-tipo', 'f-prio', 'f-info', 'f-mod', 'f-desc'];
                 let hasError = false;
 
                 fields.forEach(id => {
                     const el = document.getElementById(id);
                     if (!el.value.trim()) {
-                        el.classList.add('error');
+                        el.classList.add('error-field');
                         hasError = true;
                     } else {
-                        el.classList.remove('error');
+                        el.classList.remove('error-field');
                     }
                 });
 
                 if (hasError) {
-                    alert("Por favor, llena todos los campos resaltados antes de enviar.");
+                    alert("Por favor, llena los campos resaltados.");
                     return;
                 }
 
@@ -250,12 +258,7 @@
                 };
 
                 const { error } = await sb.from('tickets').insert([ticket]);
-                if(!error) { 
-                    alert("Ticket Enviado: " + tckId); 
-                    app.show('home'); 
-                } else {
-                    alert("Error al enviar. Intenta de nuevo.");
-                }
+                if(!error) { alert("Ticket Enviado: " + tckId); app.show('home'); }
             },
 
             loadUserTickets: async () => {
@@ -269,9 +272,9 @@
                         </div>
                         <div style="text-align:right">
                             <span class="badge ${t.estado === 'Abierto' ? 'bg-open' : t.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${t.estado}</span>
-                            <div style="margin-top:5px; font-size:0.7rem">${t.tecnico_asignado ? 'Atendido por ' + t.tecnico_asignado : 'Pendiente'}</div>
+                            <div style="margin-top:5px; font-size:0.7rem">${t.tecnico_asignado ? 'Técnico: ' + t.tecnico_asignado : 'Pendiente'}</div>
                         </div>
-                    </div>`).join('') || '<p style="text-align:center; color:var(--text-dim)">Aún no tienes tickets.</p>';
+                    </div>`).join('') || '<p style="text-align:center; color:var(--text-dim)">Sin solicitudes.</p>';
             },
 
             loadAdmin: async () => {
@@ -302,16 +305,11 @@
                 if(!error) app.loadAdmin();
             },
 
-            openResolve: (id) => { 
-                activeTicketId = id; 
-                document.getElementById('resolve-msg').value = '';
-                document.getElementById('resolve-modal').style.display = 'grid'; 
-            },
+            openResolve: (id) => { activeTicketId = id; document.getElementById('resolve-modal').style.display = 'grid'; },
 
             confirmResolve: async () => {
                 const msg = document.getElementById('resolve-msg').value;
-                if (!msg.trim()) { alert("Debes ingresar la respuesta de soporte para cerrar el ticket."); return; }
-                
+                if (!msg.trim()) { document.getElementById('resolve-msg').classList.add('error-field'); return; }
                 const { error } = await sb.from('tickets').update({ estado: 'Cerrado', respuesta: msg, fecha_cierre: new Date() }).eq('id', activeTicketId);
                 if(!error) { document.getElementById('resolve-modal').style.display = 'none'; app.loadAdmin(); }
             },
