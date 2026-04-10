@@ -3,270 +3,285 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GTIM Support - Sistema de Soporte Técnico</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
+    <title>GTIM Service Desk v2.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-color: #0c0f17;
-            --app-bg: radial-gradient(circle at 50% 50%, #161b2e 0%, #0c0f17 100%);
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg: #0b0e14;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --accent: #00f2ff;
             --accent-glow: rgba(0, 242, 255, 0.3);
-            --secondary-accent: #9d50bb;
-            --text-primary: #ffffff;
-            --text-secondary: #a0aec0;
-            --success: #00e676;
-            --warning: #ffb300;
-            --error: #ff5252;
-            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --text: #ffffff;
+            --text-dim: #94a3b8;
+            --critica: #ff3d00;
+            --alta: #ff9100;
+            --media: #ffea00;
+            --baja: #00e676;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; color: var(--text-primary); background: var(--app-bg); min-height: 100vh; overflow-x: hidden; line-height: 1.6; }
-        .app-container { padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
-        .glass-nav { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 1.2rem; padding: 1rem 2rem; margin-bottom: 2rem; box-shadow: var(--card-shadow); }
-        .nav-content { display: flex; justify-content: space-between; align-items: center; }
-        .logo { display: flex; align-items: center; gap: 0.8rem; font-size: 1.5rem; font-weight: 700; font-family: 'Poppins', sans-serif; letter-spacing: -0.5px; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; }
+        .glass { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .container { max-width: 1300px; margin: 0 auto; padding: 25px; }
+
+        /* Navigation */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; margin-bottom: 25px; }
+        .logo { font-family: 'Poppins'; font-size: 1.6rem; font-weight: 700; color: white; display:flex; align-items:center; gap:10px; }
         .logo span { color: var(--accent); }
-        .logo-icon { color: var(--accent); filter: drop-shadow(0 0 8px var(--accent-glow)); }
-        .screen-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; animation: slideUp 0.5s ease-out; }
-        @media (max-width: 992px) { .screen-layout { grid-template-columns: 1fr; } }
-        .glass-card { background: var(--glass-bg); backdrop-filter: blur(8px); border: 1px solid var(--glass-border); border-radius: 1.5rem; padding: 2rem; box-shadow: var(--card-shadow); height: fit-content; }
-        .glass-card h2 { font-family: 'Poppins', sans-serif; font-size: 1.8rem; margin-bottom: 1.5rem; }
-        .form-group { margin-bottom: 1.2rem; }
-        .form-group label { display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.4rem; }
-        .form-input, .form-select, .form-textarea { width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border); border-radius: 0.8rem; padding: 0.8rem 1rem; color: white; outline: none; transition: border 0.3s; }
-        .form-input:focus { border-color: var(--accent); }
-        .btn { padding: 0.8rem 1.5rem; border-radius: 0.8rem; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 0.6rem; transition: all 0.3s; }
-        .btn-primary { background: var(--accent); color: var(--bg-color); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--accent-glow); }
-        .btn-secondary { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--glass-border); }
-        .ticket-item { background: rgba(0, 0, 0, 0.2); border-radius: 1rem; padding: 1.2rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent); cursor: pointer; transition: transform 0.2s; }
-        .ticket-item:hover { transform: translateX(5px); background: rgba(255,255,255,0.05); }
-        .status-badge { font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 0.5rem; text-transform: uppercase; font-weight: 700; background: var(--accent); color: #000; }
-        .login-screen { display: flex; justify-content: center; align-items: center; min-height: 70vh; }
-        .login-card { max-width: 450px; width: 100%; text-align: center; }
-        .content-fade { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Dashboard */
+        .dashboard { display: grid; grid-template-columns: 1fr 1.2fr; gap: 25px; }
+        @media (max-width: 1000px) { .dashboard { grid-template-columns: 1fr; } }
+        
+        .card { padding: 25px; }
+        h3 { font-family: 'Poppins'; margin-bottom: 20px; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
+
+        /* Form Elements */
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; text-transform: uppercase; font-weight: 600; }
+        input, select, textarea { 
+            width: 100%; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); 
+            border-radius: 12px; color: white; outline: none; transition: 0.3s; font-size: 0.9rem;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+        .main-btn {
+            background: var(--accent); color: #000; padding: 15px; border-radius: 12px; border: none;
+            font-weight: 700; cursor: pointer; width: 100%; text-transform: uppercase; margin-top:10px; transition: 0.3s;
+        }
+        .main-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 20px var(--accent-glow); }
+
+        /* Ticket Cards */
+        .ticket-list { max-height: 700px; overflow-y: auto; padding-right: 10px; }
+        .ticket-item { 
+            background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 15px;
+            padding: 20px; margin-bottom: 15px; display: flex; justify-content: space-between; gap: 20px;
+            border-left: 4px solid var(--accent);
+        }
+        .priority-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .dot-critica { background: var(--critica); box-shadow: 0 0 10px var(--critica); }
+        .dot-alta { background: var(--alta); }
+        .dot-media { background: var(--media); }
+        .dot-baja { background: var(--baja); }
+
+        /* Login */
+        .login-wrap { display: grid; place-items: center; height: 80vh; }
+        .login-box { width: 400px; padding: 40px; text-align: center; }
+
+        /* Modals/Dialogs */
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display:none; place-items:center; z-index:100; }
+        .modal-content { max-width: 500px; width: 90%; padding: 30px; }
     </style>
 </head>
 <body>
-    <div id="app" class="app-container">
-        <nav class="glass-nav">
-            <div class="nav-content">
-                <div class="logo"><i data-lucide="shield-check" class="logo-icon"></i><span>GTIM <span>Soporte</span></span></div>
-                <div id="nav-actions-container"></div>
-            </div>
+
+    <div class="container">
+        <nav class="glass">
+            <div class="logo"><i data-lucide="layout"></i> GTIM <span>SERVICE DESK</span></div>
+            <div id="nav-actions"></div>
         </nav>
-        <main id="main-content" class="content-fade">
-            <div style="display: flex; justify-content: center; align-items: center; min-height: 50vh; flex-direction: column; gap: 1rem;">
-                <div class="logo" style="font-size: 2rem;">Iniciando Sistema...</div>
+        <div id="main-view"></div>
+    </div>
+
+    <!-- Modal para cerrar ticket -->
+    <div id="resolve-modal" class="modal">
+        <div class="glass modal-content">
+            <h3>Finalizar Solicitud</h3>
+            <div class="form-group">
+                <label>Respuesta de Soporte</label>
+                <textarea id="resolve-msg" rows="4" placeholder="Describe la solución aplicada..."></textarea>
             </div>
-        </main>
+            <div style="display:flex; gap:10px">
+                <button class="main-btn" onclick="app.confirmResolve()" style="background:var(--success)">Cerrar Ticket</button>
+                <button class="main-btn" onclick="document.getElementById('resolve-modal').style.display='none'" style="background:#555">Cancelar</button>
+            </div>
+        </div>
     </div>
 
     <script>
-
-// CONFIGURACIÓN DE SUPABASE FINAL
         const SUPABASE_URL = 'https://xpdvvdnwzqyjvnxpivvc.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_18PzzKKfqb20-ksjQGF_8g_-oZZNUll';
-        
-        // Inicializar cliente de Supabase
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let state = {
-            currentUser: null,
-            currentView: 'login',
-            tickets: []
-        };
+        let user = null;
+        let activeTicketId = null;
 
-        async function init() {
-            render();
-            if (window.lucide) window.lucide.createIcons();
-        }
+        const app = {
+            init: () => { app.show('login'); },
+            show: (view) => {
+                const views = {
+                    login: `
+                        <div class="login-wrap">
+                            <div class="glass login-box">
+                                <h2 style="margin-bottom:20px">Inicia Sesión</h2>
+                                <input type="email" id="l-email" placeholder="Correo GTIM" style="margin-bottom:15px">
+                                <input type="password" id="l-pass" placeholder="Contraseña" style="margin-bottom:20px">
+                                <button class="main-btn" onclick="app.doLogin()">Ingresar</button>
+                                <p style="margin-top:20px; font-size:0.8rem">¿Sin cuenta? <a href="#" onclick="app.show('reg')" style="color:var(--accent)">Regístrate</a></p>
+                            </div>
+                        </div>`,
+                    reg: `
+                        <div class="login-wrap">
+                            <div class="glass login-box">
+                                <h2>Registro</h2>
+                                <input type="text" id="r-name" placeholder="Nombre Completo" style="margin-bottom:15px">
+                                <input type="email" id="r-email" placeholder="Email @gtim.com" style="margin-bottom:15px">
+                                <input type="password" id="r-pass" placeholder="Password" style="margin-bottom:20px">
+                                <button class="main-btn" onclick="app.doReg()">Crear Cuenta</button>
+                                <button class="main-btn" onclick="app.show('login')" style="background:transparent; color:white; border:1px solid var(--glass-border)">Volver</button>
+                            </div>
+                        </div>`,
+                    home: `
+                        <div class="dashboard">
+                            <div class="glass card">
+                                <h3><i data-lucide="send"></i> Nueva Solicitud</h3>
+                                <div class="field-row">
+                                    <div class="form-group"><label>Proyecto</label><input type="text" id="f-proy" placeholder="Proyecto"></div>
+                                    <div class="form-group"><label>Área</label>
+                                        <select id="f-area"><option>QA</option><option>DEV</option><option>F4</option><option>OTROS</option></select>
+                                    </div>
+                                </div>
+                                <div class="field-row">
+                                    <div class="form-group"><label>Tipo de Solicitud</label>
+                                        <select id="f-tipo">
+                                            <option>Instalación de Imágenes</option><option>Respaldo de Imágenes</option><option>Encendido de equipos</option>
+                                            <option>Configuración de impresoras</option><option>Validar conexión a la red</option><option>Carga de Respaldos</option>
+                                            <option>Movimiento de equipos</option><option>Instalación de imagen base</option><option>Solicitud de Cables de red</option>
+                                            <option>Eliminación de respaldos</option><option>Habilitación de espacios de trabajo</option><option>Instalación de escaner</option>
+                                            <option>Instalación de drivers</option><option>Rasurado de imágenes</option><option>Creación de imágenes virtuales</option>
+                                            <option>Solicitud de IPs</option><option>Solicitud de información</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group"><label>Prioridad</label>
+                                        <select id="f-prio"><option>Baja</option><option>Media</option><option>Alta</option><option style="color:red">Critica</option></select>
+                                    </div>
+                                </div>
+                                <div class="field-row">
+                                    <div class="form-group"><label>Información del Equipo</label><input type="text" id="f-info" placeholder="PC-001 / IP / Depto"></div>
+                                    <div class="form-group"><label>Modelo del Equipo</label><input type="text" id="f-mod" placeholder="HP / Dell / Mac"></div>
+                                </div>
+                                <div class="form-group"><label>Descripción del Problema</label><textarea id="f-desc" rows="3"></textarea></div>
+                                <button class="main-btn" onclick="app.sendTicket()">Enviar Ticket</button>
+                            </div>
+                            <div class="glass card">
+                                <h3><i data-lucide="archive"></i> Mis Solicitudes</h3>
+                                <div id="user-list" class="ticket-list">Cargando...</div>
+                            </div>
+                        </div>`,
+                    admin: `
+                        <div class="glass card">
+                            <h3><i data-lucide="shield"></i> Master Control Panel</h3>
+                            <div id="admin-list" class="ticket-list">Cargando panorama global...</div>
+                        </div>`
+                };
 
-        const render = () => {
-            const main = document.getElementById('main-content');
-            const navActions = document.getElementById('nav-actions-container');
-            main.innerHTML = '';
-            navActions.innerHTML = '';
+                document.getElementById('main-view').innerHTML = views[view];
+                lucide.createIcons();
+                app.updateNav();
+                if(view === 'home') app.loadUserTickets();
+                if(view === 'admin') app.loadAdmin();
+            },
 
-            if (state.currentUser) {
-                navActions.innerHTML = `<button class="btn btn-secondary" onclick="logout()">Salir (${state.currentUser.nombre_completo})</button>`;
-            }
+            updateNav: () => {
+                const nav = document.getElementById('nav-actions');
+                nav.innerHTML = user ? `<button onclick="app.logout()" style="color:var(--text-dim); background:none; border:none; cursor:pointer">Salir (${user.nombre_completo})</button>` : '';
+            },
 
-            switch (state.currentView) {
-                case 'login': main.appendChild(renderLogin()); break;
-                case 'register': main.appendChild(renderRegister()); break;
-                case 'home': main.appendChild(renderHome()); break;
-                case 'support': main.appendChild(renderSupportList()); break;
-            }
-            if (window.lucide) window.lucide.createIcons();
-        };
+            doLogin: async () => {
+                const { data } = await sb.from('usuarios').select('*').eq('email', document.getElementById('l-email').value).eq('password', document.getElementById('l-pass').value).single();
+                if(data) { user = data; app.show(user.rol === 'Usuario Soporte Tecnico' ? 'admin' : 'home'); }
+                else alert("Credenciales incorrectas");
+            },
 
-        const renderLogin = () => {
-            const div = document.createElement('div');
-            div.className = 'login-screen content-fade';
-            div.innerHTML = `
-                <div class="glass-card login-card">
-                    <h2>Iniciar Sesión</h2>
-                    <form onsubmit="event.preventDefault(); handleLogin(this);">
-                        <div class="form-group"><label>Email</label><input type="email" name="email" class="form-input" required></div>
-                        <div class="form-group"><label>Contraseña</label><input type="password" name="password" class="form-input" required></div>
-                        <button type="submit" class="btn btn-primary" style="width:100%">Entrar</button>
-                    </form>
-                    <p style="margin-top:1.5rem; font-size:0.8rem">¿No tienes cuenta? <a href="#" onclick="state.currentView='register'; render()" style="color:var(--accent)">Regístrate aquí</a></p>
-                    <div style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:0.8rem; margin-top:1.5rem; font-size:0.75rem; color:var(--text-secondary)">
-                        <strong>Acceso de prueba:</strong><br>
-                        Admin: admin@gtim.com / gtim123
-                    </div>
-                </div>
-            `;
-            return div;
-        };
+            doReg: async () => {
+                const { error } = await sb.from('usuarios').insert([{ nombre_completo: document.getElementById('r-name').value, email: document.getElementById('r-email').value, password: document.getElementById('r-pass').value }]);
+                if(!error) { alert("¡Éxito! Logueate."); app.show('login'); }
+            },
 
-        const renderRegister = () => {
-            const div = document.createElement('div');
-            div.className = 'login-screen content-fade';
-            div.innerHTML = `
-                <div class="glass-card login-card">
-                    <h2>Crear Cuenta</h2>
-                    <form onsubmit="event.preventDefault(); handleRegister(this);">
-                        <div class="form-group"><label>Nombre Completo</label><input type="text" name="name" class="form-input" required></div>
-                        <div class="form-group"><label>Email</label><input type="email" name="email" class="form-input" required></div>
-                        <div class="form-group"><label>Contraseña</label><input type="password" name="password" class="form-input" required></div>
-                        <button type="submit" class="btn btn-primary" style="width:100%">Registrarse</button>
-                    </form>
-                    <button class="btn btn-secondary" style="width:100%; margin-top:1rem" onclick="state.currentView='login'; render()">Volver al Login</button>
-                </div>
-            `;
-            return div;
-        };
-
-        const renderHome = () => {
-            const div = document.createElement('div');
-            div.className = 'screen-layout content-fade';
-            div.innerHTML = `
-                <div class="glass-card">
-                    <h2>Nueva Solicitud</h2>
-                    <form onsubmit="event.preventDefault(); handleCreateTicket(this);">
-                        <div class="form-group"><label>Proyecto</label><input type="text" name="proyecto" class="form-input" required placeholder="Ej: Redes, Software..."></div>
-                        <div class="form-group"><label>Prioridad</label>
-                            <select name="prioridad" class="form-select"><option value="Baja">Baja</option><option value="Media">Media</option><option value="Alta">Alta</option></select>
-                        </div>
-                        <div class="form-group"><label>Descripción del Problema</label><textarea name="descripcion" class="form-textarea" required rows="4" placeholder="Describe tu problema aquí..."></textarea></div>
-                        <button type="submit" class="btn btn-primary" style="width:100%">Enviar a Soporte</button>
-                    </form>
-                </div>
-                <div class="glass-card">
-                    <h2>Mis Solicitudes</h2>
-                    <div id="user-tickets-list" style="max-height: 400px; overflow-y: auto;">Cargando...</div>
-                </div>
-            `;
-            loadUserTickets();
-            return div;
-        };
-
-        const renderSupportList = () => {
-            const div = document.createElement('div');
-            div.className = 'glass-card content-fade';
-            div.innerHTML = `
-                <h2>Panel de Soporte GTIM</h2>
-                <div id="support-tickets-list" style="margin-top:2rem">Cargando tickets de toda la empresa...</div>
-            `;
-            loadAllTickets();
-            return div;
-        };
-
-        // --- LÓGICA DE DATOS CON SUPABASE ---
-
-        async function handleLogin(form) {
-            const { data, error } = await supabaseClient.from('usuarios').select('*').eq('email', form.email.value).eq('password', form.password.value).single();
-            if (data) {
-                state.currentUser = data;
-                state.currentView = data.rol === 'Usuario Soporte Tecnico' ? 'support' : 'home';
-                render();
-            } else {
-                alert('Email o contraseña incorrectos. Revisa tu acceso de prueba.');
-            }
-        }
-
-        async function handleRegister(form) {
-            const { error } = await supabaseClient.from('usuarios').insert([
-                { nombre_completo: form.name.value, email: form.email.value, password: form.password.value, rol: 'Usuario Solicitante' }
-            ]);
-            if (!error) {
-                alert('¡Cuenta creada! Ya puedes iniciar sesión.');
-                state.currentView = 'login';
-                render();
-            } else {
-                alert('Error al registrar: ' + error.message);
-            }
-        }
-
-        async function handleCreateTicket(form) {
-            const { error } = await supabaseClient.from('tickets').insert([
-                { 
-                    proyecto: form.proyecto.value, 
-                    prioridad: form.prioridad.value, 
-                    descripcion: form.descripcion.value,
-                    autor_nombre: state.currentUser.nombre_completo,
-                    autor_email: state.currentUser.email,
+            sendTicket: async () => {
+                const now = new Date();
+                const tckId = `TCK-${now.getDate()}${now.getMonth()+1}${now.getFullYear()}${now.getHours()}${now.getMinutes()}${now.getSeconds()}`;
+                const ticket = {
+                    id_solicitud: tckId,
+                    proyecto: document.getElementById('f-proy').value,
+                    area: document.getElementById('f-area').value,
+                    tipo: document.getElementById('f-tipo').value,
+                    prioridad: document.getElementById('f-prio').value,
+                    equipo_info: document.getElementById('f-info').value,
+                    equipo_modelo: document.getElementById('f-mod').value,
+                    descripcion: document.getElementById('f-desc').value,
+                    autor_nombre: user.nombre_completo,
+                    autor_email: user.email,
                     estado: 'Abierto'
-                }
-            ]);
-            if (!error) {
-                alert('Ticket enviado correctamente. Un técnico lo revisará pronto.');
-                form.reset();
-                loadUserTickets();
-            }
-        }
+                };
+                const { error } = await sb.from('tickets').insert([ticket]);
+                if(!error) { alert("Ticket Enviado: " + tckId); app.show('home'); }
+                else alert("Error: Verifica que agregaste las columnas a la BD.");
+            },
 
-        async function loadUserTickets() {
-            const { data } = await supabaseClient.from('tickets').select('*').eq('autor_email', state.currentUser.email).order('created_at', { ascending: false });
-            const list = document.getElementById('user-tickets-list');
-            if (data && data.length > 0) {
-                list.innerHTML = data.map(t => `
+            loadUserTickets: async () => {
+                const { data } = await sb.from('tickets').select('*').eq('autor_email', user.email).order('id', {ascending: false});
+                document.getElementById('user-list').innerHTML = data.map(t => `
                     <div class="ticket-item">
-                        <div><strong>${t.proyecto}</strong><br><small style="color:var(--text-secondary)">${t.descripcion}</small></div>
-                        <span class="status-badge">${t.estado}</span>
-                    </div>
-                `).join('');
-            } else {
-                list.innerHTML = '<p style="color:var(--text-secondary); text-align:center">No tienes tickets registrados aún.</p>';
-            }
-        }
-
-        async function loadAllTickets() {
-            const { data } = await supabaseClient.from('tickets').select('*').order('created_at', { ascending: false });
-            const list = document.getElementById('support-tickets-list');
-            if (data && data.length > 0) {
-                list.innerHTML = data.map(t => `
-                    <div class="ticket-item">
-                        <div><strong>${t.autor_nombre}</strong> (${t.proyecto})<br><small>${t.descripcion}</small></div>
-                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:5px">
-                            <span class="status-badge" style="background:var(--secondary-accent)">${t.prioridad}</span>
-                            <small>${t.estado}</small>
+                        <div>
+                            <small>${t.id_solicitud}</small>
+                            <h4>${t.proyecto}</h4>
+                            <p>${t.tipo}</p>
                         </div>
-                    </div>
-                `).join('');
-            } else {
-                list.innerHTML = '<p style="text-align:center">No hay tickets pendientes en el sistema.</p>';
-            }
-        }
+                        <div style="text-align:right">
+                            <span class="badge ${t.estado === 'Abierto' ? 'bg-open' : 'bg-closed'}">${t.estado}</span>
+                            <div style="margin-top:5px; font-size:0.7rem">${t.tecnico_asignado ? 'Asignado' : 'Pendiente'}</div>
+                        </div>
+                    </div>`).join('');
+            },
 
-        window.logout = () => { state.currentUser = null; state.currentView = 'login'; render(); };
+            loadAdmin: async () => {
+                const { data } = await sb.from('tickets').select('*').order('id', {ascending: false});
+                document.getElementById('admin-list').innerHTML = data.map(t => `
+                    <div class="ticket-item" style="border-left-color:${t.estado === 'En Proceso' ? 'var(--warning)' : t.estado === 'Cerrado' ? '#555' : 'var(--accent)'}">
+                        <div style="flex:1">
+                            <span class="priority-dot dot-${t.prioridad.toLowerCase()}"></span>
+                            <small>${t.id_solicitud} | ${t.autor_nombre}</small>
+                            <h4>${t.proyecto} - ${t.area}</h4>
+                            <p>${t.tipo}</p>
+                            <p style="margin-top:10px; color:white; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px">${t.descripcion}</p>
+                            ${t.respuesta ? `<p style="margin-top:10px; color:var(--success)"><b>Respuesta:</b> ${t.respuesta}</p>` : ''}
+                        </div>
+                        <div style="text-align:right; min-width:120px">
+                            <span class="badge ${t.estado === 'Abierto' ? 'bg-open' : t.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${t.estado}</span>
+                            <div style="margin-top:15px">
+                                ${t.estado === 'Abierto' ? `<button class="main-btn" onclick="app.claim(${t.id})" style="font-size:0.7rem; padding:8px">Atender</button>` : 
+                                  t.estado === 'En Proceso' && t.tecnico_asignado === user.nombre_completo ? `<button class="main-btn" onclick="app.openResolve(${t.id})" style="background:var(--success); font-size:0.7rem; padding:8px">Cerrar</button>` : 
+                                  `<small>${t.tecnico_asignado || ''}</small>`}
+                            </div>
+                        </div>
+                    </div>`).join('');
+            },
 
-        document.addEventListener('DOMContentLoaded', init);
+            claim: async (id) => {
+                await sb.from('tickets').update({ tecnico_asignado: user.nombre_completo, estado: 'En Proceso' }).eq('id', id);
+                app.loadAdmin();
+            },
+
+            openResolve: (id) => {
+                activeTicketId = id;
+                document.getElementById('resolve-modal').style.display = 'grid';
+            },
+
+            confirmResolve: async () => {
+                const msg = document.getElementById('resolve-msg').value;
+                await sb.from('tickets').update({ estado: 'Cerrado', respuesta: msg, fecha_cierre: new Date() }).eq('id', activeTicketId);
+                document.getElementById('resolve-modal').style.display = 'none';
+                app.loadAdmin();
+            },
+
+            logout: () => { user = null; app.show('login'); }
+        };
+
+        app.init();
     </script>
 </body>
 </html>
