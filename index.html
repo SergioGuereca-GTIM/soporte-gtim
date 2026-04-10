@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GTIM Service Desk v4.1</title>
+    <title>GTIM Service Desk v4.2</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -88,10 +88,10 @@
     <div id="resolve-modal" class="modal">
         <div class="glass card modal-content" style="max-width: 600px; width: 100%;">
             <h3>Cierre de Solicitud</h3>
-            <label>Describe la solución técnica:</label>
-            <textarea id="resolve-msg" style="height:150px; margin-top:10px"></textarea>
+            <label style="color:var(--accent)">* Respuesta Técnica Obligatoria:</label>
+            <textarea id="resolve-msg" style="height:180px; margin-top:10px; border-color:var(--accent)" placeholder="Describe detalladamente los pasos realizados para solucionar este requerimiento..."></textarea>
             <div style="display:flex; gap:15px; margin-top:20px">
-                <button class="main-btn" onclick="app.confirmResolve()" style="flex:1; background:var(--success)">Finalizar</button>
+                <button class="main-btn" onclick="app.confirmResolve()" style="flex:1; background:var(--success)">Guardar y Notificar</button>
                 <button class="main-btn" onclick="document.getElementById('resolve-modal').style.display='none'" style="flex:1; background:#444; color:white">Cancelar</button>
             </div>
         </div>
@@ -104,77 +104,43 @@
 
         let user = null;
         let activeTicketId = null;
+        let activeTicketData = null; // Para guardar datos del ticket al cerrar
 
         const app = {
             init: () => { app.show('login'); },
             show: (view, data = null) => {
                 const views = {
                     login: `
-                        <div style="display:grid; place-items:center; height:70vh">
-                            <div class="glass card" style="width:400px; text-align:center">
-                                <h2>Acceso GTIM</h2>
-                                <input type="email" id="l-email" placeholder="Correo Corporativo" style="margin-top:20px">
-                                <input type="password" id="l-pass" placeholder="Password" style="margin-top:15px; margin-bottom:20px">
-                                <button class="main-btn" style="width:100%" onclick="app.doLogin()">Ingresar</button>
-                            </div>
-                        </div>`,
+                        <div style="display:grid; place-items:center; height:70vh"><div class="glass card" style="width:400px; text-align:center"><h2>Login</h2><input type="email" id="l-email" placeholder="Email"><input type="password" id="l-pass" placeholder="Password" style="margin-top:15px; margin-bottom:20px"><button class="main-btn" style="width:100%" onclick="app.doLogin()">Ingresar</button></div></div>`,
                     home: `
                         <div class="dashboard">
                             <div class="glass card">
                                 <h3><i data-lucide="plus-circle"></i> Nuevo Ticket</h3>
                                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px">
                                     <div class="form-group"><label>Proyecto</label><input type="text" id="f-proy"></div>
-                                    <div class="form-group"><label>Área</label><select id="f-area"><option value="">--</option><option>QA</option><option>DEV</option><option>F4</option></select></div>
+                                    <div class="form-group"><label>Área</label><select id="f-area"><option>QA</option><option>DEV</option><option>F4</option></select></div>
                                 </div>
-                                <div class="form-group"><label>Tipo de Solicitud</label><select id="f-tipo"><option>Instalación</option><option>Respaldo</option><option>Redes</option></select></div>
+                                <div class="form-group"><label>Tipo</label><select id="f-tipo"><option>Instalación</option><option>Respaldo</option><option>Redes</option></select></div>
                                 <div class="form-group"><label>Prioridad</label><select id="f-prio"><option>Baja</option><option>Media</option><option>Alta</option><option>Critica</option></select></div>
-                                <div class="form-group"><label>Info Equipo (IP/Ubicación)</label><textarea id="f-info" style="height:80px"></textarea></div>
-                                <div class="form-group"><label>Modelo del Equipo</label><input type="text" id="f-mod"></div>
-                                <div class="form-group"><label>Descripción de Solicitud</label><textarea id="f-desc" style="height:120px"></textarea></div>
+                                <div class="form-group"><label>Descripción</label><textarea id="f-desc" style="height:120px"></textarea></div>
                                 <button class="main-btn" style="width:100%" onclick="app.sendTicket()">Generar Solicitud</button>
                             </div>
-                            <div class="glass card">
-                                <h3><i data-lucide="layers"></i> Mis Solicitudes</h3>
-                                <div id="user-list">Cargando...</div>
-                            </div>
+                            <div class="glass card"><h3><i data-lucide="layers"></i> Mis Seguimientos</h3><div id="user-list"></div></div>
                         </div>`,
                     detail: data ? `
-                        <div class="glass card" style="border-left: 6px solid var(--accent)">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px">
-                                <h3><i data-lucide="file-text"></i> Historial de Solicitud</h3>
-                                <span class="badge ${data.estado === 'Abierto' ? 'bg-open' : data.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${data.estado}</span>
-                            </div>
-                            <div class="glass card" style="background:rgba(0,0,0,0.2)">
-                                <label>Descripción General</label>
-                                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:20px">
-                                    <div><label>Id Solicitud</label><div class="info-val">${data.id_solicitud}</div></div>
-                                    <div><label>Fecha Solicitud</label><div class="info-val">${new Date(data.created_at).toLocaleDateString()}</div></div>
-                                    <div><label>Fecha Cierre</label><div class="info-val">${data.fecha_cierre ? new Date(data.fecha_cierre).toLocaleDateString() : 'Pendiente'}</div></div>
-                                    <div><label>Prioridad</label><div class="info-val">${data.prioridad}</div></div>
-                                </div>
-                            </div>
-                            <div class="glass card" style="background:rgba(0,0,0,0.2)">
-                                <label>Información Solicitud</label>
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:30px">
-                                    <div><label>Nombre</label><p>${data.autor_nombre}</p><br><label>Área</label><p>${data.area}</p><br><label>Proyecto</label><p>${data.proyecto}</p></div>
-                                    <div><label>Descripción</label><div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:10px">${data.descripcion}</div></div>
-                                </div>
-                            </div>
-                            <div class="glass card" style="background:rgba(0,0,0,0.2); border-left:4px solid var(--success)">
-                                <label>Respuesta de Soporte</label>
-                                <div style="display:flex; justify-content:space-between">
-                                    <div>${data.respuesta || 'Sin respuesta aún'}</div>
-                                    <div><label>Técnico:</label> ${data.tecnico_asignado || '---'}</div>
-                                </div>
-                            </div>
-                            <button class="main-btn" onclick="app.show(user.rol === 'Usuario Soporte Tecnico' ? 'admin' : 'home')" style="width:150px; float:right; background:#444; color:white">Volver</button>
-                            <div style="clear:both"></div>
-                        </div>` : '',
-                    admin: `
                         <div class="glass card">
-                            <h3><i data-lucide="command"></i> Master Support Panel</h3>
-                            <div id="admin-list" class="ticket-list">Cargando tickets globales...</div>
-                        </div>`
+                            <button onclick="app.show(user.rol === 'Usuario Soporte Tecnico' ? 'admin' : 'home')" style="background:none; border:none; color:var(--accent); cursor:pointer"><- Volver</button>
+                            <h3 style="margin-top:15px">${data.id_solicitud} - Historial</h3>
+                            <div class="glass card" style="background:rgba(0,0,0,0.2)">
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px">
+                                    <div><label>Solicitante</label><p>${data.autor_nombre}</p><br><label>Proyecto</label><p>${data.proyecto}</p></div>
+                                    <div><label>Estado</label><span class="badge ${data.estado === 'Abierto' ? 'bg-open' : data.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${data.estado}</span></div>
+                                </div>
+                                <br><label>Descripción</label><p>${data.descripcion}</p>
+                                ${data.respuesta ? `<br><label style="color:var(--success)">Respuesta Técnica</label><p style="background:rgba(0,255,0,0.05); padding:10px; border-radius:10px">${data.respuesta}</p>` : ''}
+                            </div>
+                        </div>` : '',
+                    admin: `<div class="glass card"><h3>Panel Maestro</h3><div id="admin-list"></div></div>`
                 };
 
                 document.getElementById('main-view').innerHTML = views[view];
@@ -184,14 +150,11 @@
                 if(view === 'admin') app.loadAdmin();
             },
 
-            updateNav: () => {
-                const nav = document.getElementById('nav-actions');
-                nav.innerHTML = user ? `<button onclick="app.logout()" style="color:var(--text-dim); background:none; border:none; cursor:pointer">Salir (${user.nombre_completo})</button>` : '';
-            },
+            updateNav: () => { document.getElementById('nav-actions').innerHTML = user ? `<button onclick="app.logout()" style="color:var(--text-dim); background:none; border:none; cursor:pointer">Salir (${user.nombre_completo})</button>` : ''; },
 
             doLogin: async () => {
                 const { data } = await sb.from('usuarios').select('*').eq('email', document.getElementById('l-email').value).eq('password', document.getElementById('l-pass').value).single();
-                if(data) { user = data; app.show(user.rol === 'Usuario Soporte Tecnico' ? 'admin' : 'home'); } else alert("Credenciales incorrectas");
+                if(data) { user = data; app.show(user.rol === 'Usuario Soporte Tecnico' ? 'admin' : 'home'); }
             },
 
             sendTicket: async () => {
@@ -199,21 +162,16 @@
                 const t = {
                     id_solicitud: tckId, proyecto: document.getElementById('f-proy').value, area: document.getElementById('f-area').value,
                     tipo: document.getElementById('f-tipo').value, prioridad: document.getElementById('f-prio').value,
-                    equipo_info: document.getElementById('f-info').value, equipo_modelo: document.getElementById('f-mod').value,
                     descripcion: document.getElementById('f-desc').value, autor_nombre: user.nombre_completo,
                     autor_email: user.email, estado: 'Abierto'
                 };
                 await sb.from('tickets').insert([t]);
-                alert("Ticket Enviado!"); app.show('home');
+                app.show('home');
             },
 
             loadUserTickets: async () => {
                 const { data } = await sb.from('tickets').select('*').eq('autor_email', user.email).order('id', {ascending: false});
-                document.getElementById('user-list').innerHTML = data.map(t => `
-                    <div class="ticket-item" onclick="app.viewDetail(${t.id})">
-                        <div><small>${t.id_solicitud}</small><h4>${t.proyecto}</h4><p>${t.tipo}</p></div>
-                        <div style="text-align:right"><span class="badge ${t.estado === 'Abierto' ? 'bg-open' : t.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${t.estado}</span></div>
-                    </div>`).join('');
+                document.getElementById('user-list').innerHTML = data.map(t => `<div class="ticket-item" onclick="app.viewDetail(${t.id})"><div><small>${t.id_solicitud}</small><h4>${t.proyecto}</h4></div><span class="badge ${t.estado === 'Abierto' ? 'bg-open' : 'bg-closed'}">${t.estado}</span></div>`).join('');
             },
 
             loadAdmin: async () => {
@@ -223,36 +181,67 @@
                         <div style="flex:1">
                             <span class="priority-dot dot-${(t.prioridad || 'Baja').toLowerCase()}"></span>
                             <small>${t.id_solicitud} | ${t.autor_nombre}</small>
-                            <h4>${t.proyecto} - ${t.area}</h4>
-                            <p>${t.tipo}</p>
-                            <p style="margin-top:10px; color:white; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px">${t.descripcion}</p>
+                            <h4>${t.proyecto}</h4>
+                            <p style="margin-top:10px; padding:10px; background:rgba(0,0,0,0.2); border-radius:8px">${t.descripcion}</p>
                         </div>
-                        <div style="text-align:right; min-width:140px">
+                        <div style="text-align:right">
                             <span class="badge ${t.estado === 'Abierto' ? 'bg-open' : t.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${t.estado}</span>
                             <div style="margin-top:20px">
-                                ${t.estado === 'Abierto' ? `<button class="main-btn" onclick="event.stopPropagation(); app.claim(${t.id})" style="font-size:0.75rem; padding:8px 12px">Atender</button>` : 
-                                  t.estado === 'En Proceso' && t.tecnico_asignado === user.nombre_completo ? `<button class="main-btn" onclick="event.stopPropagation(); app.openResolve(${t.id})" style="background:var(--success); font-size:0.75rem; padding:8px 12px">Cerrar</button>` : 
-                                  `<small style="color:var(--accent)">Por: ${t.tecnico_asignado || 'Técnico'}</small>`}
+                                ${t.estado === 'Abierto' ? `<button class="main-btn" onclick="event.stopPropagation(); app.claim(${t.id})">Atender</button>` : 
+                                  t.estado === 'En Proceso' && t.tecnico_asignado === user.nombre_completo ? `<button class="main-btn" onclick="event.stopPropagation(); app.openResolve(${t.id}, '${t.id_solicitud}', '${t.autor_email}')" style="background:var(--success)">Cerrar</button>` : 
+                                  `<small>Por: ${t.tecnico_asignado}</small>`}
                             </div>
                         </div>
                     </div>`).join('');
             },
 
-            viewDetail: async (id) => {
-                const { data } = await sb.from('tickets').select('*').eq('id', id).single();
-                app.show('detail', data);
+            viewDetail: async (id) => { const { data } = await sb.from('tickets').select('*').eq('id', id).single(); app.show('detail', data); },
+            claim: async (id) => { await sb.from('tickets').update({ tecnico_asignado: user.nombre_completo, estado: 'En Proceso' }).eq('id', id); app.loadAdmin(); },
+            
+            openResolve: (id, folio, email) => { 
+                activeTicketId = id; 
+                activeTicketData = { folio, email };
+                document.getElementById('resolve-modal').style.display = 'grid'; 
             },
 
-            claim: async (id) => { await sb.from('tickets').update({ tecnico_asignado: user.nombre_completo, estado: 'En Proceso' }).eq('id', id); app.loadAdmin(); },
-            openResolve: (id) => { activeTicketId = id; document.getElementById('resolve-modal').style.display = 'grid'; },
             confirmResolve: async () => {
                 const msg = document.getElementById('resolve-msg').value;
-                await sb.from('tickets').update({ estado: 'Cerrado', respuesta: msg, fecha_cierre: new Date() }).eq('id', activeTicketId);
-                document.getElementById('resolve-modal').style.display='none'; app.loadAdmin();
+                if(!msg.trim()){ alert("Debes escribir una respuesta técnica antes de cerrar."); return; }
+                
+                // 1. Guardar en Base de Datos
+                const { error } = await sb.from('tickets').update({ 
+                    estado: 'Cerrado', 
+                    respuesta: msg, 
+                    fecha_cierre: new Date() 
+                }).eq('id', activeTicketId);
+
+                if(!error){
+                    alert("Ticket Cerrado con éxito. Se abrirá Outlook para notificar al usuario.");
+                    
+                    // 2. Preparar Correo de Notificación
+                    const asunto = `TICKET CERRADO: ${activeTicketData.folio}`;
+                    const cuerpo = 
+`NOTIFICACIÓN DE FINALIZACIÓN DE TICKET
+----------------------------------------
+FOLIO: ${activeTicketData.folio}
+ESTADO: FINALIZADO / CERRADO
+----------------------------------------
+RESOLUCIÓN TÉCNICA:
+${msg}
+----------------------------------------
+ATENDIDO POR: ${user.nombre_completo}
+FECHA DE CIERRE: ${new Date().toLocaleString()}
+----------------------------------------
+Gracias por utilizar GTIM Service Desk.`;
+
+                    window.location.href = `mailto:${activeTicketData.email}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+                    
+                    document.getElementById('resolve-modal').style.display='none'; 
+                    app.loadAdmin(); 
+                }
             },
             logout: () => { user = null; app.show('login'); }
         };
-
         app.init();
     </script>
 </body>
