@@ -41,7 +41,7 @@
 
         input, select, textarea { 
             width: 100%; padding: 15px; background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); 
-            border-radius: 12px; color: white; outline: none; font-size: 1rem;
+            border-radius: 12px; color: white; outline: none; font-size: 1rem; transition: 0.3s;
         }
 
         .main-btn {
@@ -90,7 +90,7 @@
 
     <script>
         const SUPABASE_URL = 'https://xpdvvdnwzqyjvnxpivvc.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_18PzzKKfqb20-ksjQGF_8g_-oZZNUll';
+        const SUPABASE_KEY = 'sb_publishable_18PzzKKfqb2O-ksjQGF_8g_-oZZNow659d57a412803b98453531b467ec80398f62';
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let user = null;
@@ -195,16 +195,119 @@
             },
 
             sendTicket: async () => {
+                const fields = [
+                    { id: 'f-proy', label: 'Proyecto' },
+                    { id: 'f-area', label: 'Área' },
+                    { id: 'f-tipo', label: 'Tipo' },
+                    { id: 'f-prio', label: 'Prioridad' },
+                    { id: 'f-info', label: 'Info Equipo' },
+                    { id: 'f-mod', label: 'Modelo' },
+                    { id: 'f-desc', label: 'Descripción' }
+                ];
+
+                let missing = [];
+                fields.forEach(f => {
+                    const el = document.getElementById(f.id);
+                    if (!el.value || el.value === '--' || el.value.trim() === '') {
+                        missing.push(f.label);
+                        el.style.borderColor = 'var(--critica)';
+                        el.style.boxShadow = '0 0 10px rgba(255, 61, 0, 0.3)';
+                    } else {
+                        el.style.borderColor = 'var(--glass-border)';
+                        el.style.boxShadow = 'none';
+                    }
+                });
+
+                if (missing.length > 0) {
+                    alert("Por favor complete los campos obligatorios:\n" + missing.join(", "));
+                    return;
+                }
+
                 const tckId = `TCK-${Date.now()}`;
-                const t = {
-                    id_solicitud: tckId, proyecto: document.getElementById('f-proy').value, area: document.getElementById('f-area').value,
-                    tipo: document.getElementById('f-tipo').value, prioridad: document.getElementById('f-prio').value,
-                    equipo_info: document.getElementById('f-info').value, equipo_modelo: document.getElementById('f-mod').value,
-                    descripcion: document.getElementById('f-desc').value, autor_nombre: user.nombre_completo,
-                    autor_email: user.email, estado: 'Abierto'
+                const formData = {
+                    proyecto: document.getElementById('f-proy').value,
+                    area: document.getElementById('f-area').value,
+                    tipo: document.getElementById('f-tipo').value,
+                    prioridad: document.getElementById('f-prio').value,
+                    equipo_info: document.getElementById('f-info').value,
+                    equipo_modelo: document.getElementById('f-mod').value,
+                    descripcion: document.getElementById('f-desc').value
                 };
-                await sb.from('tickets').insert([t]);
-                alert("Guardado!"); app.show('home');
+
+                const t = {
+                    id_solicitud: tckId, 
+                    ...formData,
+                    autor_nombre: user.nombre_completo,
+                    autor_email: user.email, 
+                    estado: 'Abierto'
+                };
+
+                // Guardar en Supabase
+                const { error } = await sb.from('tickets').insert([t]);
+                
+                if (error) {
+                    alert("Error al guardar en base de datos: " + error.message);
+                    return;
+                }
+
+                // Generar Tabla HTML para el portapapeles
+                const htmlTable = `
+                    <table style="border-collapse: collapse; width: 100%; font-family: sans-serif; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                        <thead>
+                            <tr style="background-color: #0f172a; color: white;">
+                                <th colspan="2" style="padding: 12px; text-align: center; border: 1px solid #e2e8f0;">DETALLE DE SOLICITUD DE SOPORTE - GTIM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold; background-color: #f8fafc; width: 30%;">ID DE TICKET</td>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0;">${tckId}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold; background-color: #f8fafc;">SOLICITANTE</td>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0;">${user.nombre_completo}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold; background-color: #f8fafc;">PROYECTO</td>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0;">${formData.proyecto}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold; background-color: #f8fafc;">ÁREA / TIPO</td>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0;">${formData.area} / ${formData.tipo}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold; background-color: #f8fafc;">PRIORIDAD</td>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0; color: ${formData.prioridad === 'Critica' ? '#ef4444' : '#000'}">${formData.prioridad}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold; background-color: #f8fafc;">EQUIPO</td>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0;">${formData.equipo_modelo} (${formData.equipo_info})</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold; background-color: #f8fafc;">DESCRIPCIÓN</td>
+                                <td style="padding: 10px; border: 1px solid #e2e8f0;">${formData.descripcion}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+
+                try {
+                    const blobHtml = new Blob([htmlTable], { type: 'text/html' });
+                    const blobText = new Blob([`Ticket ${tckId} - ${formData.proyecto}`], { type: 'text/plain' });
+                    
+                    const data = [new ClipboardItem({
+                        'text/html': blobHtml,
+                        'text/plain': blobText
+                    })];
+
+                    await navigator.clipboard.write(data);
+                    alert(`¡Guardado! Se ha copiado la tabla de detalles del ticket (${tckId}) al portapapeles.`);
+                } catch (err) {
+                    console.error('Error al copiar tabla: ', err);
+                    alert(`¡Ticket Guardado! No se pudo copiar la tabla automáticamente.`);
+                }
+
+                app.show('home');
             },
 
             loadUserTickets: async () => {
