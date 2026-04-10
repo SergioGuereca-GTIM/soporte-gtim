@@ -20,6 +20,8 @@
             --alta: #ff9100;
             --media: #ffea00;
             --baja: #00e676;
+            --success: #00e676;
+            --warning: #ffb300;
         }
 
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -67,11 +69,17 @@
         .dot-media { background: var(--media); }
         .dot-baja { background: var(--baja); }
 
+        /* Status Badges */
+        .badge { padding: 4px 10px; border-radius: 5px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+        .bg-open { background: var(--accent); color: black; }
+        .bg-process { background: var(--warning); color: black; }
+        .bg-closed { background: #4a5568; color: white; }
+
         /* Login */
         .login-wrap { display: grid; place-items: center; height: 80vh; }
         .login-box { width: 400px; padding: 40px; text-align: center; }
 
-        /* Modals/Dialogs */
+        /* Modal */
         .modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display:none; place-items:center; z-index:100; }
         .modal-content { max-width: 500px; width: 90%; padding: 30px; }
     </style>
@@ -86,7 +94,6 @@
         <div id="main-view"></div>
     </div>
 
-    <!-- Modal para cerrar ticket -->
     <div id="resolve-modal" class="modal">
         <div class="glass modal-content">
             <h3>Finalizar Solicitud</h3>
@@ -219,7 +226,7 @@
                 };
                 const { error } = await sb.from('tickets').insert([ticket]);
                 if(!error) { alert("Ticket Enviado: " + tckId); app.show('home'); }
-                else alert("Error: Verifica que agregaste las columnas a la BD.");
+                else alert("Error al enviar. Revisa si agregaste las columnas a Supabase.");
             },
 
             loadUserTickets: async () => {
@@ -232,7 +239,7 @@
                             <p>${t.tipo}</p>
                         </div>
                         <div style="text-align:right">
-                            <span class="badge ${t.estado === 'Abierto' ? 'bg-open' : 'bg-closed'}">${t.estado}</span>
+                            <span class="badge ${t.estado === 'Abierto' ? 'bg-open' : t.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${t.estado}</span>
                             <div style="margin-top:5px; font-size:0.7rem">${t.tecnico_asignado ? 'Asignado' : 'Pendiente'}</div>
                         </div>
                     </div>`).join('');
@@ -255,27 +262,26 @@
                             <div style="margin-top:15px">
                                 ${t.estado === 'Abierto' ? `<button class="main-btn" onclick="app.claim(${t.id})" style="font-size:0.7rem; padding:8px">Atender</button>` : 
                                   t.estado === 'En Proceso' && t.tecnico_asignado === user.nombre_completo ? `<button class="main-btn" onclick="app.openResolve(${t.id})" style="background:var(--success); font-size:0.7rem; padding:8px">Cerrar</button>` : 
-                                  `<small>${t.tecnico_asignado || ''}</small>`}
+                                  `<small>${t.tecnico_asignado || 'En atención'}</small>`}
                             </div>
                         </div>
                     </div>`).join('');
             },
 
             claim: async (id) => {
-                await sb.from('tickets').update({ tecnico_asignado: user.nombre_completo, estado: 'En Proceso' }).eq('id', id);
-                app.loadAdmin();
+                console.log("Atendiendo ticket:", id);
+                const { error } = await sb.from('tickets').update({ tecnico_asignado: user.nombre_completo, estado: 'En Proceso' }).eq('id', id);
+                if(error) alert("Error al atender: " + error.message);
+                else app.loadAdmin();
             },
 
-            openResolve: (id) => {
-                activeTicketId = id;
-                document.getElementById('resolve-modal').style.display = 'grid';
-            },
+            openResolve: (id) => { activeTicketId = id; document.getElementById('resolve-modal').style.display = 'grid'; },
 
             confirmResolve: async () => {
                 const msg = document.getElementById('resolve-msg').value;
-                await sb.from('tickets').update({ estado: 'Cerrado', respuesta: msg, fecha_cierre: new Date() }).eq('id', activeTicketId);
-                document.getElementById('resolve-modal').style.display = 'none';
-                app.loadAdmin();
+                const { error } = await sb.from('tickets').update({ estado: 'Cerrado', respuesta: msg, fecha_cierre: new Date() }).eq('id', activeTicketId);
+                if(!error) { document.getElementById('resolve-modal').style.display = 'none'; app.loadAdmin(); }
+                else alert("Error al cerrar: " + error.message);
             },
 
             logout: () => { user = null; app.show('login'); }
