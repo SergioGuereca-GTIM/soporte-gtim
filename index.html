@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GTIM Service Desk v3.0</title>
+    <title>GTIM Service Desk v3.5</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -42,10 +42,22 @@
         label { display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 10px; text-transform: uppercase; font-weight: 700; border-left: 3px solid var(--accent); padding-left: 12px; }
         
         input, select, textarea { 
-            width: 100%; padding: 15px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); 
+            width: 100%; padding: 15px; background: rgba(0,0,0,0.6); border: 1px solid var(--glass-border); 
             border-radius: 12px; color: white; outline: none; transition: 0.3s; font-size: 1rem;
+            appearance: none;
         }
-        input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); background: rgba(255,255,255,0.05); }
+
+        /* Arreglo para Combos (Selects) */
+        select { 
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300f2ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 18px;
+            cursor: pointer;
+        }
+        select option { background: #1a233a; color: white; padding: 10px; }
+
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); background: rgba(25, 30, 45, 0.8); }
         
         .tall-textarea { min-height: 110px; resize: none; }
         .main-textarea { min-height: 200px; resize: none; border-left: 4px solid var(--accent); }
@@ -86,14 +98,14 @@
     <!-- Modal para cerrar ticket -->
     <div id="resolve-modal" class="modal">
         <div class="glass card modal-content" style="max-width: 600px; width: 100%;">
-            <h3>Cierre de Ticket</h3>
+            <h3>Finalizar Solicitud</h3>
             <div class="form-group">
                 <label>Detalles de la Solución Técnica</label>
                 <textarea id="resolve-msg" class="main-textarea" placeholder="Escribe aquí los pasos realizados para solucionar el ticket..." oninput="this.classList.remove('error-field')"></textarea>
             </div>
             <div style="display:flex; gap:15px">
-                <button class="main-btn" onclick="app.confirmResolve()" style="background:var(--success)">Cerrar Solicitud</button>
-                <button class="main-btn" onclick="document.getElementById('resolve-modal').style.display='none'" style="background:#334155; color:white">Regresar</button>
+                <button class="main-btn" onclick="app.confirmResolve()" style="background:var(--success)">Guardar y Cerrar</button>
+                <button class="main-btn" onclick="document.getElementById('resolve-modal').style.display='none'" style="background:#334155; color:white">Volver</button>
             </div>
         </div>
     </div>
@@ -114,21 +126,21 @@
                         <div style="display:grid; place-items:center; height:70vh">
                             <div class="glass card" style="width:420px; text-align:center">
                                 <h2 style="margin-bottom:30px">Inicia Sesión</h2>
-                                <input type="email" id="l-email" placeholder="Correo GTIM" style="margin-bottom:15px">
-                                <input type="password" id="l-pass" placeholder="Password" style="margin-bottom:25px">
-                                <button class="main-btn" onclick="app.doLogin()">Entrar al Sistema</button>
-                                <p style="margin-top:20px; font-size:0.8rem; color:var(--text-dim)">¿Nuevo? <a href="#" onclick="app.show('reg')" style="color:var(--accent)">Regístrate</a></p>
+                                <input type="email" id="l-email" placeholder="Correo Corporativo">
+                                <input type="password" id="l-pass" placeholder="Password" style="margin-top:15px; margin-bottom:25px">
+                                <button class="main-btn" onclick="app.doLogin()">Entrar</button>
+                                <p style="margin-top:20px; font-size:0.8rem; color:var(--text-dim)">¿Nuevo? <a href="#" onclick="app.show('reg')" style="color:var(--accent)">Crear Cuenta</a></p>
                             </div>
                         </div>`,
                     reg: `
                         <div style="display:grid; place-items:center; height:70vh">
                             <div class="glass card" style="width:420px; text-align:center">
-                                <h2 style="margin-bottom:30px">Registro Corporativo</h2>
-                                <input type="text" id="r-name" placeholder="Nombre Completo" style="margin-bottom:15px">
-                                <input type="email" id="r-email" placeholder="Email @gtim.mx" style="margin-bottom:15px">
-                                <input type="password" id="r-pass" placeholder="Definir Password" style="margin-bottom:25px">
-                                <button class="main-btn" onclick="app.doReg()">Crear Cuenta</button>
-                                <button class="main-btn" onclick="app.show('login')" style="background:transparent; color:white; border:1px solid var(--glass-border); margin-top:10px">Volver</button>
+                                <h2 style="margin-bottom:30px">Registro Único</h2>
+                                <input type="text" id="r-name" placeholder="Nombre Completo">
+                                <input type="email" id="r-email" placeholder="Email @gtim.mx" style="margin-top:15px">
+                                <input type="password" id="r-pass" placeholder="Password" style="margin-top:15px; margin-bottom:25px">
+                                <button class="main-btn" onclick="app.doReg()">Guardar</button>
+                                <button class="main-btn" onclick="app.show('login')" style="background:transparent; color:white; border:1px solid var(--glass-border); margin-top:10px">Regresar</button>
                             </div>
                         </div>`,
                     home: `
@@ -137,18 +149,25 @@
                                 <h3><i data-lucide="plus-circle"></i> Nueva Solicitud</h3>
                                 <div class="field-row">
                                     <div class="form-group"><label>Nombre del Proyecto</label>
-                                        <input type="text" id="f-proy" placeholder="Proyecto" oninput="this.classList.remove('error-field')">
+                                        <input type="text" id="f-proy" oninput="this.classList.remove('error-field')">
                                     </div>
                                     <div class="form-group"><label>Área Solicitante</label>
-                                        <select id="f-area" onchange="this.classList.remove('error-field')"><option value="">-- Seleccionar --</option><option>QA</option><option>DEV</option><option>F4</option><option>OTROS</option></select>
+                                        <select id="f-area" onchange="this.classList.remove('error-field')">
+                                            <option value="">-- Seleccionar --</option><option>QA</option><option>DEV</option><option>F4</option><option>OTROS</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="field-row">
                                     <div class="form-group"><label>Tipo de Solicitud</label>
-                                        <select id="f-tipo" onchange="this.classList.remove('error-field')"><option value="">-- Seleccionar --</option><option>Instalación de Imágenes</option><option>Respaldo de Imágenes</option><option>Configuración de impresoras</option><option>Movimiento de equipos</option><option>Solicitud de IPs</option></select>
+                                        <select id="f-tipo" onchange="this.classList.remove('error-field')">
+                                            <option value="">-- Seleccionar --</option>
+                                            <option>Instalación de Imágenes</option><option>Respaldo de Imágenes</option><option>Configuración de impresoras</option><option>Movimiento de equipos</option><option>Solicitud de IPs</option>
+                                        </select>
                                     </div>
                                     <div class="form-group"><label>Prioridad</label>
-                                        <select id="f-prio" onchange="this.classList.remove('error-field')"><option value="">-- Seleccionar --</option><option>Baja</option><option>Media</option><option>Alta</option><option>Critica</option></select>
+                                        <select id="f-prio" onchange="this.classList.remove('error-field')">
+                                            <option value="">-- Seleccionar --</option><option>Baja</option><option>Media</option><option>Alta</option><option>Critica</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="field-row">
@@ -161,19 +180,19 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Descripción de Solicitud</label>
-                                    <textarea id="f-desc" class="main-textarea" oninput="this.classList.remove('error-field')" placeholder="Captura aquí el detalle de tu requerimiento..."></textarea>
+                                    <textarea id="f-desc" class="main-textarea" oninput="this.classList.remove('error-field')"></textarea>
                                 </div>
-                                <button class="main-btn" onclick="app.sendTicket()">Generar Solicitud</button>
+                                <button class="main-btn" onclick="app.sendTicket()">Enviar y Copiar Ficha</button>
                             </div>
                             <div class="glass card">
-                                <h3><i data-lucide="layers"></i> Mis Solicitudes</h3>
+                                <h3><i data-lucide="layers"></i> Mis Seguimientos</h3>
                                 <div id="user-list" class="ticket-list">Cargando...</div>
                             </div>
                         </div>`,
                     admin: `
                         <div class="glass card">
                             <h3><i data-lucide="shield"></i> Master Service Console</h3>
-                            <div id="admin-list" class="ticket-list">Panel de gestión global...</div>
+                            <div id="admin-list" class="ticket-list">Iniciando panel global...</div>
                         </div>`
                 };
                 document.getElementById('main-view').innerHTML = views[view] || views.login;
@@ -185,17 +204,17 @@
 
             updateNav: () => {
                 const nav = document.getElementById('nav-actions');
-                nav.innerHTML = user ? `<button onclick="app.logout()" style="color:var(--text-dim); background:none; border:none; cursor:pointer; font-weight:600">Cerrar Sesión (${user.nombre_completo})</button>` : '';
+                nav.innerHTML = user ? `<button onclick="app.logout()" style="color:var(--text-dim); background:none; border:none; cursor:pointer; font-weight:600">Salir (${user.nombre_completo})</button>` : '';
             },
 
             doLogin: async () => {
                 const { data } = await sb.from('usuarios').select('*').eq('email', document.getElementById('l-email').value).eq('password', document.getElementById('l-pass').value).single();
-                if(data) { user = data; app.show(user.rol === 'Usuario Soporte Tecnico' ? 'admin' : 'home'); } else alert("No se encontró el usuario.");
+                if(data) { user = data; app.show(user.rol === 'Usuario Soporte Tecnico' ? 'admin' : 'home'); } else alert("No se pudo iniciar sesión.");
             },
 
             doReg: async () => {
                 const { error } = await sb.from('usuarios').insert([{ nombre_completo: document.getElementById('r-name').value, email: document.getElementById('r-email').value, password: document.getElementById('r-pass').value }]);
-                if(!error) { alert("¡Registro Exitoso!"); app.show('login'); }
+                if(!error) { alert("¡Usuario creado!"); app.show('login'); }
             },
 
             sendTicket: async () => {
@@ -203,12 +222,12 @@
                 let hasError = false;
                 fields.forEach(id => { if(!document.getElementById(id).value.trim()){ document.getElementById(id).classList.add('error-field'); hasError = true; } });
                 
-                if(hasError) return alert("Por favor llena todos los campos resaltados.");
+                if(hasError) return alert("Por favor llena los campos resaltados.");
 
                 const now = new Date();
                 const tckId = `TCK-${now.getDate()}${now.getMonth()+1}${now.getFullYear()}${now.getHours()}${now.getMinutes()}${now.getSeconds()}`;
                 
-                const tData = {
+                const t = {
                     id_solicitud: tckId, proyecto: document.getElementById('f-proy').value, area: document.getElementById('f-area').value,
                     tipo: document.getElementById('f-tipo').value, prioridad: document.getElementById('f-prio').value,
                     equipo_info: document.getElementById('f-info').value, equipo_modelo: document.getElementById('f-mod').value,
@@ -216,32 +235,39 @@
                     autor_email: user.email, estado: 'Abierto'
                 };
 
-                const { error } = await sb.from('tickets').insert([tData]);
+                const { error } = await sb.from('tickets').insert([t]);
                 
                 if(!error) {
-                    // --- PREPARAR OUTLOOK ---
-                    const destinatario = "soporte@gtim.mx"; // <-- Ajusta aquí el correo de la mesa de ayuda
-                    const asunto = `Solicitud Soporte Técnico - Folio: ${tData.id_solicitud}`;
-                    const cuerpo = 
-`SOLICITUD DE SOPORTE TÉCNICO - GTIM
-----------------------------------------
-ID SOLICITUD: ${tData.id_solicitud}
-----------------------------------------
-ÁREA SOLICITANTE: ${tData.area}
-NOMBRE PROYECTO: ${tData.proyecto}
-NOMBRE DEL SOLICITANTE: ${tData.autor_nombre}
-INFORMACIÓN DEL EQUIPO: ${tData.equipo_info}
-MODELO DEL EQUIPO: ${tData.equipo_modelo}
-----------------------------------------
-DESCRIPCIÓN DE SOLICITUD:
-${tData.descripcion}
-----------------------------------------
-Mensaje generado automáticamente desde GTIM Service Desk.`;
+                    const tableHTML = `
+                        <div style="font-family: Arial, sans-serif; padding: 10px;">
+                            <table style="width: 100%; border: 2px solid #000; border-collapse: collapse; max-width: 650px;">
+                                <tr>
+                                    <td colspan="2" style="background-color: #ff0000; color: #ffffff; padding: 15px; font-weight: bold; text-align: center; border: 1px solid #000; font-size: 18px;">
+                                        Solicitud Soporte Técnico - Folio: ${t.id_solicitud}
+                                    </td>
+                                </tr>
+                                <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold; width: 35%; background: #f2f2f2;">Área solicitante (X)</td><td style="padding: 10px; border: 1px solid #000;">${t.area}</td></tr>
+                                <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold; background: #f2f2f2;">Nombre Proyecto</td><td style="padding: 10px; border: 1px solid #000;">${t.proyecto}</td></tr>
+                                <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold; background: #f2f2f2;">Nombre del Solicitante</td><td style="padding: 10px; border: 1px solid #000;">${t.autor_nombre}</td></tr>
+                                <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold; background: #f2f2f2;">Información del equipo</td><td style="padding: 10px; border: 1px solid #000;">${t.equipo_info}</td></tr>
+                                <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold; background: #f2f2f2;">Modelo del equipo</td><td style="padding: 10px; border: 1px solid #000;">${t.equipo_modelo}</td></tr>
+                                <tr>
+                                    <td style="padding: 10px; border: 1px solid #000; font-weight: bold; vertical-align: top; background: #f2f2f2;">Descripción de Solicitud</td>
+                                    <td style="padding: 10px; border: 1px solid #000; height: 130px; vertical-align: top;">${t.descripcion}</td>
+                                </tr>
+                            </table>
+                            <p style="font-size: 11px; color: #888; margin-top: 15px;">Mensaje automatizado desde GTIM Service Desk</p>
+                        </div>`;
 
-                    window.location.href = `mailto:${destinatario}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+                    const blob = new Blob([tableHTML], { type: 'text/html' });
+                    const plain = new Blob([`Folio: ${tckId}`], { type: 'text/plain' });
+                    const item = new ClipboardItem({ 'text/html': blob, 'text/plain': plain });
                     
-                    alert("¡Ticket Guardado! Se abrirá Outlook para confirmar el envío.");
-                    app.show('home');
+                    navigator.clipboard.write([item]).then(() => {
+                        alert("¡Solicitud enviada!\n\nLa ficha técnica se ha COPIADO a tu portapapeles.\nSolo pega con CTRL+V en tu Outlook.");
+                        window.location.href = `mailto:soporte@gtim.mx?subject=Soporte Técnico - ${t.id_solicitud}`;
+                        app.show('home');
+                    });
                 }
             },
 
@@ -251,7 +277,7 @@ Mensaje generado automáticamente desde GTIM Service Desk.`;
                     <div class="ticket-item">
                         <div><small>${t.id_solicitud}</small><h4>${t.proyecto}</h4><p>${t.tipo}</p></div>
                         <div style="text-align:right"><span class="badge ${t.estado === 'Abierto' ? 'bg-open' : t.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${t.estado}</span></div>
-                    </div>`).join('') || '<p style="text-align:center; color:var(--text-dim)">Sin tickets activos.</p>';
+                    </div>`).join('') || '<p style="text-align:center; color:var(--text-dim)">Sin movimientos.</p>';
             },
 
             loadAdmin: async () => {
@@ -261,16 +287,15 @@ Mensaje generado automáticamente desde GTIM Service Desk.`;
                         <div style="flex:1">
                             <small>${t.id_solicitud} | ${t.autor_nombre}</small>
                             <h4>${t.proyecto} - ${t.area}</h4>
-                            <p style="color:var(--text-dim); font-size:0.8rem">${t.tipo} | ${t.equipo_modelo}</p>
                             <div style="margin-top:10px; background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; font-size:0.9rem">${t.descripcion}</div>
                             ${t.respuesta ? `<div style="margin-top:10px; color:var(--success)"><b>Solución:</b> ${t.respuesta}</div>` : ''}
                         </div>
-                        <div style="text-align:right; min-width:140px">
+                        <div style="text-align:right">
                             <span class="badge ${t.estado === 'Abierto' ? 'bg-open' : t.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${t.estado}</span>
                             <div style="margin-top:20px">
                                 ${t.estado === 'Abierto' ? `<button class="main-btn" onclick="app.claim(${t.id})" style="font-size:0.8rem; padding:10px">Atender</button>` : 
                                   t.estado === 'En Proceso' && t.tecnico_asignado === user.nombre_completo ? `<button class="main-btn" onclick="app.openResolve(${t.id})" style="background:var(--success)">Cerrar</button>` : 
-                                  `<small style="color:var(--accent)">Por: ${t.tecnico_asignado || 'Otro técnico'}</small>`}
+                                  `<small style="color:var(--accent)">Por: ${t.tecnico_asignado}</small>`}
                             </div>
                         </div>
                     </div>`).join('');
