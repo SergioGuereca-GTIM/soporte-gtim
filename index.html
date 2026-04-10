@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GTIM Service Desk 6.1</title>
+    <title>GTIM Service Desk v3.5</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -47,6 +47,7 @@
             appearance: none;
         }
 
+        /* Arreglo para Combos (Selects) */
         select { 
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300f2ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
             background-repeat: no-repeat;
@@ -72,7 +73,7 @@
         .ticket-item { 
             background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 18px;
             padding: 25px; margin-bottom: 20px; display: flex; justify-content: space-between; gap: 20px;
-            border-left: 5px solid var(--accent); transition: 0.3s; cursor: pointer;
+            border-left: 5px solid var(--accent); transition: 0.3s;
         }
         .ticket-item:hover { background: rgba(255,255,255,0.06); transform: translateX(8px); }
 
@@ -82,9 +83,6 @@
         .bg-closed { background: #475569; color: white; }
 
         .modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); display:none; place-items:center; z-index:1000; padding:20px; }
-        
-        .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
-        .info-val { font-size: 1rem; color: white; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; border: 1px solid var(--glass-border); }
     </style>
 </head>
 <body>
@@ -97,6 +95,7 @@
         <div id="main-view"></div>
     </div>
 
+    <!-- Modal para cerrar ticket -->
     <div id="resolve-modal" class="modal">
         <div class="glass card modal-content" style="max-width: 600px; width: 100%;">
             <h3>Finalizar Solicitud</h3>
@@ -113,7 +112,7 @@
 
     <script>
         const SUPABASE_URL = 'https://xpdvvdnwzqyjvnxpivvc.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_18PzzKKfqb2O-ksjQGF_8g_-oZZNow659d57a412803b98453531b467ec80398f62';
+        const SUPABASE_KEY = 'sb_publishable_18PzzKKfqb20-ksjQGF_8g_-oZZNUll';
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let user = null;
@@ -121,7 +120,7 @@
 
         const app = {
             init: () => { app.show('login'); },
-            show: (view, data = null) => {
+            show: (view) => {
                 const views = {
                     login: `
                         <div style="display:grid; place-items:center; height:70vh">
@@ -139,7 +138,7 @@
                                 <h2 style="margin-bottom:30px">Registro Único</h2>
                                 <input type="text" id="r-name" placeholder="Nombre Completo">
                                 <input type="email" id="r-email" placeholder="Email @gtim.mx" style="margin-top:15px">
-                                <input type="password" id="r-pass" placeholder="Password" style="margin-top:15px; margin-bottom:20px">
+                                <input type="password" id="r-pass" placeholder="Password" style="margin-top:15px; margin-bottom:25px">
                                 <button class="main-btn" onclick="app.doReg()">Guardar</button>
                                 <button class="main-btn" onclick="app.show('login')" style="background:transparent; color:white; border:1px solid var(--glass-border); margin-top:10px">Regresar</button>
                             </div>
@@ -190,33 +189,6 @@
                                 <div id="user-list" class="ticket-list">Cargando...</div>
                             </div>
                         </div>`,
-                    detail: data ? `
-                        <div class="glass card" style="border-left: 6px solid var(--accent)">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px">
-                                <h3><i data-lucide="file-text"></i> Detalle de Solicitud</h3>
-                                <span class="badge ${data.estado === 'Abierto' ? 'bg-open' : data.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${data.estado}</span>
-                            </div>
-                            <div class="detail-grid">
-                                <div><label>ID Folio</label><div class="info-val">${data.id_solicitud}</div></div>
-                                <div><label>Fecha Creación</label><div class="info-val">${new Date(data.created_at).toLocaleString()}</div></div>
-                                <div><label>Proyecto</label><div class="info-val">${data.proyecto}</div></div>
-                                <div><label>Prioridad</label><div class="info-val">${data.prioridad}</div></div>
-                            </div>
-                            <div style="margin-top:20px">
-                                <label>Descripción del Problema</label>
-                                <div class="info-val" style="min-height:100px">${data.descripcion}</div>
-                            </div>
-                            <div class="detail-grid">
-                                <div><label>Técnico Asignado</label><div class="info-val">${data.tecnico_asignado || 'Pendiente'}</div></div>
-                                <div><label>Fecha de Cierre</label><div class="info-val">${data.fecha_cierre ? new Date(data.fecha_cierre).toLocaleString() : 'En curso'}</div></div>
-                            </div>
-                            ${data.respuesta ? `
-                            <div style="margin-top:20px; border-top:1px solid var(--glass-border); padding-top:20px">
-                                <label style="color:var(--success)">Resolución Técnica</label>
-                                <div class="info-val" style="border-left:4px solid var(--success)">${data.respuesta}</div>
-                            </div>` : ''}
-                            <button class="main-btn" onclick="app.show('home')" style="width:200px; margin-top:30px; background:#334155; color:white">Regresar al Home</button>
-                        </div>` : '',
                     admin: `
                         <div class="glass card">
                             <h3><i data-lucide="shield"></i> Master Service Console</h3>
@@ -288,7 +260,8 @@
                         </div>`;
 
                     const blob = new Blob([tableHTML], { type: 'text/html' });
-                    const item = new ClipboardItem({ 'text/html': blob, 'text/plain': new Blob([`Folio: ${tckId}`], { type: 'text/plain' }) });
+                    const plain = new Blob([`Folio: ${tckId}`], { type: 'text/plain' });
+                    const item = new ClipboardItem({ 'text/html': blob, 'text/plain': plain });
                     
                     navigator.clipboard.write([item]).then(() => {
                         alert("¡Solicitud enviada!\n\nLa ficha técnica se ha COPIADO a tu portapapeles.\nSolo pega con CTRL+V en tu Outlook.");
@@ -301,15 +274,10 @@
             loadUserTickets: async () => {
                 const { data } = await sb.from('tickets').select('*').eq('autor_email', user.email).order('id', {ascending: false});
                 document.getElementById('user-list').innerHTML = data.map(t => `
-                    <div class="ticket-item" onclick="app.viewDetail(${t.id})">
+                    <div class="ticket-item">
                         <div><small>${t.id_solicitud}</small><h4>${t.proyecto}</h4><p>${t.tipo}</p></div>
                         <div style="text-align:right"><span class="badge ${t.estado === 'Abierto' ? 'bg-open' : t.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${t.estado}</span></div>
                     </div>`).join('') || '<p style="text-align:center; color:var(--text-dim)">Sin movimientos.</p>';
-            },
-
-            viewDetail: async (id) => {
-                const { data } = await sb.from('tickets').select('*').eq('id', id).single();
-                if(data) app.show('detail', data);
             },
 
             loadAdmin: async () => {
