@@ -29,34 +29,35 @@
         .glass { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         .container { max-width: 1300px; margin: 0 auto; padding: 25px; }
 
-        /* Navigation */
         nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; margin-bottom: 25px; }
         .logo { font-family: 'Poppins'; font-size: 1.6rem; font-weight: 700; color: white; display:flex; align-items:center; gap:10px; }
         .logo span { color: var(--accent); }
 
-        /* Dashboard */
         .dashboard { display: grid; grid-template-columns: 1fr 1.2fr; gap: 25px; }
         @media (max-width: 1000px) { .dashboard { grid-template-columns: 1fr; } }
         
         .card { padding: 25px; }
         h3 { font-family: 'Poppins'; margin-bottom: 20px; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
 
-        /* Form Elements */
         .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; text-transform: uppercase; font-weight: 600; }
+        
         input, select, textarea { 
             width: 100%; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); 
             border-radius: 12px; color: white; outline: none; transition: 0.3s; font-size: 0.9rem;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+        
+        /* Efecto cuando falta un campo */
+        input.error, select.error, textarea.error { border-color: var(--critica); background: rgba(255, 61, 0, 0.1); }
+
         .main-btn {
             background: var(--accent); color: #000; padding: 15px; border-radius: 12px; border: none;
             font-weight: 700; cursor: pointer; width: 100%; text-transform: uppercase; margin-top:10px; transition: 0.3s;
         }
         .main-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 20px var(--accent-glow); }
 
-        /* Ticket Cards */
         .ticket-list { max-height: 700px; overflow-y: auto; padding-right: 10px; }
         .ticket-item { 
             background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 15px;
@@ -69,18 +70,15 @@
         .dot-media { background: var(--media); }
         .dot-baja { background: var(--baja); }
 
-        /* Status Badges */
         .badge { padding: 4px 10px; border-radius: 5px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
         .bg-open { background: var(--accent); color: black; }
         .bg-process { background: var(--warning); color: black; }
         .bg-closed { background: #4a5568; color: white; }
 
-        /* Login */
         .login-wrap { display: grid; place-items: center; height: 80vh; }
         .login-box { width: 400px; padding: 40px; text-align: center; }
 
-        /* Modal */
-        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display:none; place-items:center; z-index:100; }
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display:none; place-items:center; z-index:1000; }
         .modal-content { max-width: 500px; width: 90%; padding: 30px; }
     </style>
 </head>
@@ -94,6 +92,7 @@
         <div id="main-view"></div>
     </div>
 
+    <!-- Modal para cerrar ticket -->
     <div id="resolve-modal" class="modal">
         <div class="glass modal-content">
             <h3>Finalizar Solicitud</h3>
@@ -146,14 +145,17 @@
                             <div class="glass card">
                                 <h3><i data-lucide="send"></i> Nueva Solicitud</h3>
                                 <div class="field-row">
-                                    <div class="form-group"><label>Proyecto</label><input type="text" id="f-proy" placeholder="Proyecto"></div>
+                                    <div class="form-group"><label>Proyecto</label><input type="text" id="f-proy" placeholder="Ej: Redes"></div>
                                     <div class="form-group"><label>Área</label>
-                                        <select id="f-area"><option>QA</option><option>DEV</option><option>F4</option><option>OTROS</option></select>
+                                        <select id="f-area">
+                                            <option value="">-- Selecciona --</option><option>QA</option><option>DEV</option><option>F4</option><option>OTROS</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="field-row">
                                     <div class="form-group"><label>Tipo de Solicitud</label>
                                         <select id="f-tipo">
+                                            <option value="">-- Selecciona --</option>
                                             <option>Instalación de Imágenes</option><option>Respaldo de Imágenes</option><option>Encendido de equipos</option>
                                             <option>Configuración de impresoras</option><option>Validar conexión a la red</option><option>Carga de Respaldos</option>
                                             <option>Movimiento de equipos</option><option>Instalación de imagen base</option><option>Solicitud de Cables de red</option>
@@ -163,14 +165,16 @@
                                         </select>
                                     </div>
                                     <div class="form-group"><label>Prioridad</label>
-                                        <select id="f-prio"><option>Baja</option><option>Media</option><option>Alta</option><option style="color:red">Critica</option></select>
+                                        <select id="f-prio">
+                                            <option value="">-- Selecciona --</option><option>Baja</option><option>Media</option><option>Alta</option><option>Critica</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="field-row">
-                                    <div class="form-group"><label>Información del Equipo</label><input type="text" id="f-info" placeholder="PC-001 / IP / Depto"></div>
-                                    <div class="form-group"><label>Modelo del Equipo</label><input type="text" id="f-mod" placeholder="HP / Dell / Mac"></div>
+                                    <div class="form-group"><label>Información del Equipo</label><input type="text" id="f-info" placeholder="PC-001 / IP"></div>
+                                    <div class="form-group"><label>Modelo del Equipo</label><input type="text" id="f-mod" placeholder="HP / Dell"></div>
                                 </div>
-                                <div class="form-group"><label>Descripción del Problema</label><textarea id="f-desc" rows="3"></textarea></div>
+                                <div class="form-group"><label>Descripción del Problema</label><textarea id="f-desc" rows="3" placeholder="Describe tu solicitud..."></textarea></div>
                                 <button class="main-btn" onclick="app.sendTicket()">Enviar Ticket</button>
                             </div>
                             <div class="glass card">
@@ -209,8 +213,28 @@
             },
 
             sendTicket: async () => {
+                // IDs de los campos a validar
+                const fields = ['f-proy', 'f-area', 'f-tipo', 'f-prio', 'f-info', 'f-mod', 'f-desc'];
+                let hasError = false;
+
+                fields.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (!el.value.trim()) {
+                        el.classList.add('error');
+                        hasError = true;
+                    } else {
+                        el.classList.remove('error');
+                    }
+                });
+
+                if (hasError) {
+                    alert("Por favor, llena todos los campos resaltados antes de enviar.");
+                    return;
+                }
+
                 const now = new Date();
                 const tckId = `TCK-${now.getDate()}${now.getMonth()+1}${now.getFullYear()}${now.getHours()}${now.getMinutes()}${now.getSeconds()}`;
+                
                 const ticket = {
                     id_solicitud: tckId,
                     proyecto: document.getElementById('f-proy').value,
@@ -224,9 +248,14 @@
                     autor_email: user.email,
                     estado: 'Abierto'
                 };
+
                 const { error } = await sb.from('tickets').insert([ticket]);
-                if(!error) { alert("Ticket Enviado: " + tckId); app.show('home'); }
-                else alert("Error al enviar. Revisa si agregaste las columnas a Supabase.");
+                if(!error) { 
+                    alert("Ticket Enviado: " + tckId); 
+                    app.show('home'); 
+                } else {
+                    alert("Error al enviar. Intenta de nuevo.");
+                }
             },
 
             loadUserTickets: async () => {
@@ -234,15 +263,15 @@
                 document.getElementById('user-list').innerHTML = data.map(t => `
                     <div class="ticket-item">
                         <div>
-                            <small>${t.id_solicitud}</small>
-                            <h4>${t.proyecto}</h4>
-                            <p>${t.tipo}</p>
+                            <small>${t.id_solicitud || 'S/N'}</small>
+                            <h4>${t.proyecto || 'Sin Proyecto'}</h4>
+                            <p>${t.tipo || 'General'}</p>
                         </div>
                         <div style="text-align:right">
                             <span class="badge ${t.estado === 'Abierto' ? 'bg-open' : t.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${t.estado}</span>
-                            <div style="margin-top:5px; font-size:0.7rem">${t.tecnico_asignado ? 'Asignado' : 'Pendiente'}</div>
+                            <div style="margin-top:5px; font-size:0.7rem">${t.tecnico_asignado ? 'Atendido por ' + t.tecnico_asignado : 'Pendiente'}</div>
                         </div>
-                    </div>`).join('');
+                    </div>`).join('') || '<p style="text-align:center; color:var(--text-dim)">Aún no tienes tickets.</p>';
             },
 
             loadAdmin: async () => {
@@ -250,38 +279,41 @@
                 document.getElementById('admin-list').innerHTML = data.map(t => `
                     <div class="ticket-item" style="border-left-color:${t.estado === 'En Proceso' ? 'var(--warning)' : t.estado === 'Cerrado' ? '#555' : 'var(--accent)'}">
                         <div style="flex:1">
-                            <span class="priority-dot dot-${t.prioridad.toLowerCase()}"></span>
-                            <small>${t.id_solicitud} | ${t.autor_nombre}</small>
+                            <span class="priority-dot dot-${(t.prioridad || 'Baja').toLowerCase()}"></span>
+                            <small>${t.id_solicitud || 'S/N'} | ${t.autor_nombre}</small>
                             <h4>${t.proyecto} - ${t.area}</h4>
                             <p>${t.tipo}</p>
                             <p style="margin-top:10px; color:white; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px">${t.descripcion}</p>
-                            ${t.respuesta ? `<p style="margin-top:10px; color:var(--success)"><b>Respuesta:</b> ${t.respuesta}</p>` : ''}
+                            ${t.respuesta ? `<p style="margin-top:10px; color:var(--success)"><b>Solución:</b> ${t.respuesta}</p>` : ''}
                         </div>
-                        <div style="text-align:right; min-width:120px">
+                        <div style="text-align:right; min-width:140px">
                             <span class="badge ${t.estado === 'Abierto' ? 'bg-open' : t.estado === 'Cerrado' ? 'bg-closed' : 'bg-process'}">${t.estado}</span>
                             <div style="margin-top:15px">
                                 ${t.estado === 'Abierto' ? `<button class="main-btn" onclick="app.claim(${t.id})" style="font-size:0.7rem; padding:8px">Atender</button>` : 
                                   t.estado === 'En Proceso' && t.tecnico_asignado === user.nombre_completo ? `<button class="main-btn" onclick="app.openResolve(${t.id})" style="background:var(--success); font-size:0.7rem; padding:8px">Cerrar</button>` : 
-                                  `<small>${t.tecnico_asignado || 'En atención'}</small>`}
+                                  `<small style="color:var(--accent)">Por: ${t.tecnico_asignado || 'Técnico'}</small>`}
                             </div>
                         </div>
                     </div>`).join('');
             },
 
             claim: async (id) => {
-                console.log("Atendiendo ticket:", id);
                 const { error } = await sb.from('tickets').update({ tecnico_asignado: user.nombre_completo, estado: 'En Proceso' }).eq('id', id);
-                if(error) alert("Error al atender: " + error.message);
-                else app.loadAdmin();
+                if(!error) app.loadAdmin();
             },
 
-            openResolve: (id) => { activeTicketId = id; document.getElementById('resolve-modal').style.display = 'grid'; },
+            openResolve: (id) => { 
+                activeTicketId = id; 
+                document.getElementById('resolve-msg').value = '';
+                document.getElementById('resolve-modal').style.display = 'grid'; 
+            },
 
             confirmResolve: async () => {
                 const msg = document.getElementById('resolve-msg').value;
+                if (!msg.trim()) { alert("Debes ingresar la respuesta de soporte para cerrar el ticket."); return; }
+                
                 const { error } = await sb.from('tickets').update({ estado: 'Cerrado', respuesta: msg, fecha_cierre: new Date() }).eq('id', activeTicketId);
                 if(!error) { document.getElementById('resolve-modal').style.display = 'none'; app.loadAdmin(); }
-                else alert("Error al cerrar: " + error.message);
             },
 
             logout: () => { user = null; app.show('login'); }
