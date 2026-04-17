@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GTIM Soporte Técnico 2.4 - Master</title>
+    <title>GTIM Soporte Técnico - Control Maestro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -43,47 +43,37 @@
         .container { max-width: 1400px; margin: 0 auto; padding: 25px; }
 
         nav { display: grid; grid-template-columns: auto 1fr auto; align-items: center; padding: 15px 30px; margin-bottom: 25px; gap: 20px; }
-        .logo { font-family: 'Poppins'; font-size: 1.5rem; font-weight: 700; color: var(--text); display:flex; align-items:center; gap:10px; cursor: pointer; white-space: nowrap; }
+        .logo { font-family: 'Poppins'; font-size: 1.5rem; font-weight: 700; color: var(--text); display:flex; align-items:center; gap:10px; cursor: pointer; }
         .logo span { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
         .welcome-msg { text-align: center; font-size: 0.9rem; color: var(--text-dim); }
         .welcome-msg b { color: var(--accent); }
         .nav-btns { display: flex; gap: 10px; align-items: center; justify-content: flex-end; }
-        .theme-btn { background: var(--glass); border: 1px solid var(--glass-border); color: var(--text); padding: 8px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; transition: 0.3s; }
-        .logout-btn { background: rgba(255, 61, 0, 0.1); color: var(--critica); padding: 10px 22px; border: 1.5px solid var(--critica); border-radius: 12px; font-weight: 700; font-size: 0.75rem; cursor: pointer; transition: 0.3s; }
+        .theme-btn { background: var(--glass); border: 1px solid var(--glass-border); color: var(--text); padding: 8px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; }
+        .logout-btn { background: rgba(255, 61, 0, 0.1); color: var(--critica); padding: 10px 20px; border: 1.5px solid var(--critica); border-radius: 12px; font-weight: 700; font-size: 0.75rem; cursor: pointer; }
 
-        h3 { font-family: 'Poppins'; margin-bottom: 25px; font-size: 1.4rem; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; }
+        .dashboard-layout { display: grid; grid-template-columns: 1fr 0.9fr; gap: 30px; }
+        @media (max-width: 1100px) { .dashboard-layout { grid-template-columns: 1fr; } }
+        
         .card { padding: 30px; }
-
-        /* TICKET ITEMS */
-        .ticket-item { padding: 18px; background: rgba(255,255,255,0.02); border-radius: 15px; margin-bottom: 12px; border: 1px solid var(--glass-border); cursor: pointer; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; }
-        .ticket-item:hover { transform: translateX(8px); border-color: var(--accent); }
-
-        /* VIEW TABS */
-        .view-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: rgba(0,0,0,0.1); padding: 6px; border-radius: 15px; width: fit-content; }
-        .tab-btn { background: transparent; border: none; color: var(--text-dim); padding: 12px 24px; border-radius: 12px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
-        .tab-btn.active { background: var(--accent); color: white; box-shadow: 0 4px 15px var(--accent-glow); }
-
-        /* STATS */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-        .stat-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 20px; border-radius: 18px; text-align: center; }
-        .stat-box h4 { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; }
-        .stat-box p { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
-
-        .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 25px; }
-
-        /* FORM */
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; text-transform: uppercase; font-weight: 700; border-left: 3px solid var(--accent); padding-left: 10px; }
-        input, select, textarea { width: 100%; padding: 14px; background: rgba(0,0,0,0.1) !important; border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text); outline: none; transition: 0.3s; }
+        h3 { font-family: 'Poppins'; margin-bottom: 25px; font-size: 1.4rem; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; }
+        
+        input, select, textarea { width: 100%; padding: 14px; background: rgba(0,0,0,0.1) !important; border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text); outline: none; transition: 0.3s; margin-bottom: 15px; }
         body.light-mode input, body.light-mode select, body.light-mode textarea { background: #fff !important; color: #1e293b; }
+        
         .main-btn { background: var(--accent); color: #fff; padding: 16px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; width: 100%; transition: 0.3s; }
-        .main-btn:hover { filter: brightness(1.2); box-shadow: 0 5px 15px var(--accent-glow); }
-
         .badge { padding: 6px 14px; border-radius: 8px; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; }
         .bg-open { background: var(--accent); color: #fff; }
         .bg-process { background: var(--warning); color: #000; }
         .bg-closed { background: #64748b; color: white; }
 
+        .ticket-item { padding: 18px; background: rgba(255,255,255,0.02); border-radius: 15px; margin-bottom: 12px; border: 1px solid var(--glass-border); cursor: pointer; }
+        .view-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: rgba(0,0,0,0.1); padding: 6px; border-radius: 15px; width: fit-content; }
+        .tab-btn { background: transparent; border: none; color: var(--text-dim); padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .tab-btn.active { background: var(--accent); color: white; box-shadow: 0 4px 15px var(--accent-glow); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-box { background: var(--glass); border: 1px solid var(--glass-border); padding: 20px; border-radius: 18px; text-align: center; cursor: pointer; }
+        
         .modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display:none; place-items:center; z-index:1000; backdrop-filter: blur(10px); }
         .info-val { font-size: 1rem; color: var(--text); background: rgba(0,0,0,0.1); padding: 12px; border-radius: 10px; border: 1px solid var(--glass-border); }
     </style>
@@ -104,10 +94,10 @@
     <!-- Modal Resolución -->
     <div id="resolve-modal" class="modal">
         <div class="glass card" style="max-width: 550px; width: 100%;">
-            <h3><i data-lucide="check-circle" style="color:var(--success)"></i> Cerrar Ticket</h3>
-            <textarea id="resolve-msg" style="width:100%; min-height: 180px; margin:20px 0" placeholder="Solución técnica..."></textarea>
+            <h3>Resolver Ticket</h3>
+            <textarea id="resolve-msg" style="width:100%; min-height: 180px; margin:20px 0" placeholder="Describe la solución..."></textarea>
             <div style="display:flex; gap:15px">
-                <button class="main-btn" id="btn-confirm-resolve" style="background:var(--success)">Guardar y Cerrar</button>
+                <button class="main-btn" id="btn-confirm-resolve" style="background:var(--success)">Finalizar</button>
                 <button class="main-btn" onclick="document.getElementById('resolve-modal').style.display='none'" style="background:#334155; color:white">Cancelar</button>
             </div>
         </div>
@@ -125,7 +115,6 @@
 
         if(isLightMode) document.body.classList.add('light-mode');
 
-        // Plugin Texto Central Dona
         const centerTextPlugin = {
             id: 'centerText',
             afterDraw: (chart) => {
@@ -134,13 +123,13 @@
                 ctx.save();
                 const text = chart.config.options.plugins.centerText.text || '';
                 const subtext = chart.config.options.plugins.centerText.subtext || '';
-                ctx.font = 'bold 2.5rem Inter';
+                ctx.font = 'bold 2rem Inter';
                 ctx.fillStyle = document.body.classList.contains('light-mode') ? '#1e293b' : '#ffffff';
                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(text, left + width / 2, top + height / 2 - 10);
-                ctx.font = '500 0.9rem Inter';
+                ctx.font = '500 0.8rem Inter';
                 ctx.fillStyle = '#94a3b8';
-                ctx.fillText(subtext, left + width / 2, top + height / 2 + 20);
+                ctx.fillText(subtext, left + width / 2, top + height / 2 + 15);
                 ctx.restore();
             }
         };
@@ -158,62 +147,17 @@
             },
 
             show: (view, data = null) => {
-                // RESTRICCIÓN: Solo "Administrador Soporte" ve el dashboard maestro
-                if(view === 'dashboard_admin' && user?.nombre_completo !== 'Administrador Soporte') {
-                    app.goHome(); return;
-                }
+                const isAdmin = user?.nombre_completo === 'Administrador Soporte';
+                if(view === 'dashboard_admin' && !isAdmin) { app.goHome(); return; }
 
                 const views = {
-                    login: `<div style="display:grid; place-items:center; height:70vh"><div class="glass card" style="width:400px; text-align:center"><h2 style="margin-bottom:30px">Inicia Sesión</h2><input type="email" id="l-email" placeholder="Usuario"><input type="password" id="l-pass" placeholder="Password" style="margin:15px; margin-bottom:25px"><button class="main-btn" onclick="app.doLogin()">Entrar</button></div></div>`,
-                    home: `
-                        <div style="display:grid; grid-template-columns:1fr 0.9fr; gap:30px">
-                            <div class="glass card">
-                                <h3><i data-lucide="plus-circle"></i> Nuevo Requerimiento</h3>
-                                <div class="form-group"><label>Proyecto / Área</label><input type="text" id="f-proy"></div>
-                                <div class="form-group"><label>Descripción</label><textarea id="f-desc" style="min-height:120px"></textarea></div>
-                                <button class="main-btn" onclick="app.sendTicket()">Enviar Solicitud</button>
-                            </div>
-                            <div class="glass card"><h3> Mis Tickets</h3><div id="user-list"></div></div>
-                        </div>`,
-                    detail: data ? `
-                        <div class="glass card" style="max-width:850px; margin:auto">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:30px"><h3>#${data.id_solicitud}</h3><span class="badge ${data.estado === 'Abierto' ? 'bg-open' : 'bg-process'}">${data.estado}</span></div>
-                            <div class="info-val" style="margin-bottom:20px">${data.descripcion}</div>
-                            ${data.respuesta ? `<div style="color:var(--success); margin-bottom:20px">${data.respuesta}</div>` : ''}
-                            <button class="main-btn" onclick="app.goHome()" style="max-width:180px">Volver</button>
-                        </div>` : '',
-                    admin: `
-                        <div class="glass card">
-                            <div class="view-tabs">
-                                <button class="tab-btn active" onclick="app.show('admin')"><i data-lucide="list"></i> Bandeja Operativa</button>
-                                ${user?.nombre_completo === 'Administrador Soporte' ? `<button class="tab-btn" onclick="app.show('dashboard_admin')"><i data-lucide="bar-chart-3"></i> Dashboard Maestro</button>` : ''}
-                            </div>
-                            <h3>Consola Técnica</h3>
-                            <div class="stats-grid">
-                                <div class="stat-box" onclick="app.filterAdmin('Todos')"><h4>Total</h4><p id="s-total">0</p></div>
-                                <div class="stat-box" onclick="app.filterAdmin('Abierto')"><h4>Nuevos</h4><p id="s-open" style="color:var(--accent)">0</p></div>
-                                <div class="stat-box" onclick="app.filterAdmin('En Proceso')"><h4>En Curso</h4><p id="s-proc" style="color:var(--warning)">0</p></div>
-                                <div class="stat-box" onclick="app.filterAdmin('Cerrado')"><h4>Hechos</h4><p id="s-closed" style="color:var(--success)">0</p></div>
-                            </div>
-                            <div id="admin-list" style="display:grid; grid-template-columns:1fr 1fr; gap:20px"></div>
-                        </div>`,
-                    dashboard_admin: `
-                        <div class="glass card">
-                            <div class="view-tabs">
-                                <button class="tab-btn" onclick="app.show('admin')"><i data-lucide="list"></i> Bandeja Operativa</button>
-                                <button class="tab-btn active" onclick="app.show('dashboard_admin')"><i data-lucide="bar-chart-3"></i> Dashboard Maestro</button>
-                            </div>
-                            <div class="analytics-grid">
-                                <div class="glass card" style="text-align:center">
-                                    <div style="height:350px"><canvas id="statsChart"></canvas></div>
-                                </div>
-                                <div class="glass card">
-                                    <h4>Productividad por Técnico</h4>
-                                    <div style="height:350px"><canvas id="techBarChart"></canvas></div>
-                                </div>
-                            </div>
-                        </div>`
+                    login: `<div style="display:grid; place-items:center; height:70vh"><div class="glass card" style="width:400px; text-align:center"><h2 style="margin-bottom:30px">Inicia Sesión</h2><input type="email" id="l-email" placeholder="Usuario"><input type="password" id="l-pass" placeholder="Password"><button class="main-btn" onclick="app.doLogin()">Entrar</button></div></div>`,
+                    home: `<div class="dashboard-layout"><div class="glass card"><h3>Nuevo Ticket</h3><input type="text" id="f-proy" placeholder="Proyecto"><textarea id="f-desc" placeholder="Descripción"></textarea><button class="main-btn" onclick="app.sendTicket()">Enviar</button></div><div class="glass card"><h3>Mis Estados</h3><div id="user-list"></div></div></div>`,
+                    detail: data ? `<div class="glass card" style="max-width:800px; margin:auto"><h3>Ticket #${data.id_solicitud}</h3><div class="info-val">${data.descripcion}</div><button class="main-btn" onclick="app.goHome()" style="max-width:150px; margin-top:20px">Volver</button></div>` : '',
+                    admin: `<div class="glass card"><div class="view-tabs"><button class="tab-btn active">Bandeja</button>${isAdmin ? `<button class="tab-btn" onclick="app.show('dashboard_admin')">Estadísticas</button>` : ''}</div><div class="stats-grid"><div class="stat-box" onclick="app.filterAdmin('Todos')"><h4>Total</h4><p id="s-total">0</p></div><div class="stat-box" onclick="app.filterAdmin('Abierto')"><h4>Nuevos</h4><p id="s-open" style="color:var(--accent)">0</p></div><div class="stat-box" onclick="app.filterAdmin('En Proceso')"><h4>Curso</h4><p id="s-proc" style="color:var(--warning)">0</p></div><div class="stat-box" onclick="app.filterAdmin('Cerrado')"><h4>Hechos</h4><p id="s-closed" style="color:var(--success)">0</p></div></div><div id="admin-list" style="display:grid; grid-template-columns:1fr 1fr; gap:20px"></div></div>`,
+                    dashboard_admin: `<div class="glass card"><div class="view-tabs"><button class="tab-btn" onclick="app.show('admin')">Bandeja</button><button class="tab-btn active">Estadísticas</button></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:30px"><div class="glass card" style="height:400px"><canvas id="statsChart"></canvas></div><div class="glass card" style="height:400px"><canvas id="techBarChart"></canvas></div></div></div>`
                 };
+
                 document.getElementById('main-view').innerHTML = views[view] || views.login;
                 lucide.createIcons();
                 app.updateNav();
@@ -226,7 +170,7 @@
                 const welcome = document.getElementById('welcome-container');
                 const actions = document.getElementById('nav-actions');
                 if(user) {
-                    welcome.innerHTML = `Sesión: <b>${user.nombre_completo}</b> (${user.rol})`;
+                    welcome.innerHTML = `Sesión: <b>${user.nombre_completo}</b>`;
                     actions.innerHTML = `<button class="theme-btn" onclick="app.toggleTheme()"><i data-lucide="${isLightMode ? 'sun' : 'moon'}"></i></button><button onclick="app.logout()" class="logout-btn">Salir</button>`;
                 } else { welcome.innerHTML = ''; actions.innerHTML = ''; }
                 lucide.createIcons();
@@ -236,18 +180,18 @@
 
             doLogin: async () => {
                 const { data } = await sb.from('usuarios').select('*').eq('email', document.getElementById('l-email').value).eq('password', document.getElementById('l-pass').value).single();
-                if(data) { user = data; app.goHome(); } else alert("Error de acceso.");
+                if(data) { user = data; app.goHome(); } else alert("Credenciales incorrectas.");
             },
 
             sendTicket: async () => {
                 const t = { id_solicitud: 'T-'+Date.now(), proyecto: document.getElementById('f-proy').value, descripcion: document.getElementById('f-desc').value, autor_nombre: user.nombre_completo, autor_email: user.email, estado: 'Abierto' };
                 await sb.from('tickets').insert([t]);
-                alert("Ticket Enviado"); app.show('home');
+                alert("Enviado"); app.show('home');
             },
 
             loadUserTickets: async () => {
                 const { data } = await sb.from('tickets').select('*').eq('autor_email', user.email).order('id', {ascending: false});
-                document.getElementById('user-list').innerHTML = data.map(t => `<div class="ticket-item" onclick="app.show('detail', ${JSON.stringify(t).replace(/"/g, '&quot;')})"><div><small>#${t.id_solicitud}</small><h4>${t.proyecto}</h4></div><span class="badge ${t.estado === 'Abierto' ? 'bg-open' : 'bg-process'}">${t.estado}</span></div>`).join('');
+                document.getElementById('user-list').innerHTML = data.map(t => `<div class="ticket-item" onclick="app.show('detail', ${JSON.stringify(t).replace(/"/g, '&quot;')})"><b>${t.proyecto}</b> <span class="badge ${t.estado === 'Abierto' ? 'bg-open' : 'bg-process'}">${t.estado}</span></div>`).join('');
             },
 
             filterAdmin: (status) => { currentFilter = status; app.loadAdmin(); },
@@ -262,12 +206,12 @@
                 const filtered = currentFilter === 'Todos' ? allData : allData.filter(t => t.estado === currentFilter);
                 document.getElementById('admin-list').innerHTML = filtered.map(t => {
                     const ts = JSON.stringify(t).replace(/"/g, '&quot;');
-                    return `<div class="glass card" style="padding:20px; cursor:pointer" onclick="app.show('detail', ${ts})">
-                        <div style="display:flex; justify-content:space-between"><b>${t.id_solicitud}</b> <span class="badge ${t.estado === 'Abierto' ? 'bg-open' : 'bg-closed' : 'bg-process'}">${t.estado}</span></div>
+                    return `<div class="glass card" style="padding:15px; cursor:pointer" onclick="app.show('detail', ${ts})">
+                        <div style="display:flex; justify-content:space-between"><b>${t.id_solicitud}</b><span class="badge ${t.estado === 'Abierto' ? 'bg-open' : (t.estado === 'Cerrado' ? 'bg-closed' : 'bg-process')}">${t.estado}</span></div>
                         <p style="margin:10px 0">${t.proyecto}</p>
                         <div style="display:flex; gap:10px">
-                            ${t.estado === 'Abierto' ? `<button class="main-btn" style="padding:8px" onclick="event.stopPropagation(); app.claim(${t.id})">Atender</button>` : ''}
-                            ${t.estado === 'En Proceso' ? `<button class="main-btn" style="padding:8px; background:var(--success)" onclick='event.stopPropagation(); app.openResolve(${ts})'>Cerrar</button>` : ''}
+                            ${t.estado === 'Abierto' ? `<button class="main-btn" style="padding:5px" onclick="event.stopPropagation(); app.claim(${t.id})">Atender</button>` : ''}
+                            ${t.estado === 'En Proceso' ? `<button class="main-btn" style="padding:5px; background:var(--success)" onclick='event.stopPropagation(); app.openResolve(${ts})'>Cerrar</button>` : ''}
                         </div>
                     </div>`}).join('');
             },
@@ -293,19 +237,16 @@
                 if(window.myChart) window.myChart.destroy();
                 window.myChart = new Chart(ctx, {
                     type: 'doughnut',
-                    data: {
-                        labels: ['Nuevos', 'Progreso', 'Hechos'],
-                        datasets: [{ data: [stats.Abierto, stats['En Proceso'], stats.Cerrado], backgroundColor: ['#00f2ff', '#ffb300', '#00e676'], borderWidth: 0, borderRadius: 20, spacing: 15 }]
-                    },
-                    options: { maintainAspectRatio: false, cutout: '82%', plugins: { legend: { position: 'bottom' }, centerText: { text: stats.Abierto + stats['En Proceso'] + stats.Cerrado, subtext: 'Solicitudes' } } }
+                    data: { labels: ['Nuevos', 'Progreso', 'Hechos'], datasets: [{ data: [stats.Abierto, stats['En Proceso'], stats.Cerrado], backgroundColor: ['#00f2ff', '#ffb300', '#00e676'], borderWidth: 0, borderRadius: 15, spacing: 10 }] },
+                    options: { maintainAspectRatio: false, cutout: '82%', plugins: { legend: { position: 'bottom' }, centerText: { text: stats.Abierto + stats['En Proceso'] + stats.Cerrado, subtext: 'Total' } } }
                 });
 
                 const ctxBar = document.getElementById('techBarChart').getContext('2d');
                 if(window.myBarChart) window.myBarChart.destroy();
                 window.myBarChart = new Chart(ctxBar, {
                     type: 'bar',
-                    data: { labels: Object.keys(techData), datasets: [{ data: Object.values(techData), backgroundColor: '#00f2ff', borderRadius: 20, barThickness: 20 }] },
-                    options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } }
+                    data: { labels: Object.keys(techData), datasets: [{ data: Object.values(techData), backgroundColor: '#00f2ff', borderRadius: 20 }] },
+                    options: { maintainAspectRatio: false, scales: { y: { grid: { display: false } }, x: { grid: { display: false } } } }
                 });
             },
 
